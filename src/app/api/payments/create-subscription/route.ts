@@ -3,7 +3,17 @@ import { createClient } from "@supabase/supabase-js";
 import DodoPayments from "dodopayments";
 import { rateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
 
-const DODO_API_KEY = process.env.DODO_API_KEY;
+const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY;
+
+// Add a simple GET method for testing
+export async function GET(req: NextRequest) {
+  return NextResponse.json({ 
+    message: "Create subscription endpoint is accessible",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    hasApiKey: !!DODO_API_KEY
+  });
+}
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting
@@ -16,7 +26,7 @@ export async function POST(req: NextRequest) {
     // Check if Dodo Payments is configured
     if (!DODO_API_KEY) {
       return NextResponse.json({ 
-        error: "Dodo Payments not configured. Please set up your DODO_API_KEY environment variable.",
+        error: "Dodo Payments not configured. Please set up your DODO_PAYMENTS_API_KEY environment variable.",
         details: "Payment system is not configured yet"
       }, { status: 503 });
     }
