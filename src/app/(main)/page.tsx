@@ -440,41 +440,51 @@ export default function HomePage() {
         />
       </div>
 
-      {/* User's Recent Generations - Show perfect skeleton loading during generation */}
-      {userLoaded && (
-        <>
-          <h2 className="text-xl md:text-2xl font-semibold mt-6 mb-2">
-            Your Recent Generations
-            {(forceSkeleton || localGenerating || isGenerating) && (
-              <span className="ml-2 text-sm text-muted-foreground font-normal">
-                (Generating...)
-              </span>
-            )}
-          </h2>
-          {(() => {
-            const shouldShowSkeletons = showHomepageSkeleton || forceSkeleton || localGenerating || isGenerating || myThumbsLoading || myThumbs.some(t => t === null);
-            return shouldShowSkeletons;
-          })() ? (
-            <HomepageSkeleton />
-          ) : myThumbsLoading || myThumbs.some(t => t === null) ? (
-            <HomepageSkeleton />
-          ) : myThumbs.length === 0 ? (
-            <NoThumbnailsFound />
-          ) : (
-            <ThumbnailsGrid
-              thumbnails={myThumbs}
-              loading={false}
-              onRegenerate={handleRegenerate}
-              gridClassName="grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-4"
-              selectedIds={selectedIds}
-              setSelectedIds={setSelectedIds}
-              quantity={4}
-              isRegenerating={false}
-              showCheckbox={true}
-              key={`home-my-thumbs-${userLoaded ? 'user-loaded' : 'user-loading'}`} // Force re-render when user loads
-            />
-          )}
-        </>
+      {/* User's Recent Generations - Show only when user is logged in, has 4+ generations, or is generating */}
+      {userLoaded && user && (
+        (() => {
+          const isGeneratingThumbnails = showHomepageSkeleton || forceSkeleton || localGenerating || isGenerating;
+          const hasEnoughGenerations = myThumbs.length >= 4;
+          const shouldShowSection = isGeneratingThumbnails || hasEnoughGenerations;
+          
+          if (!shouldShowSection) return null;
+          
+          return (
+            <>
+              <h2 className="text-xl md:text-2xl font-semibold mt-6 mb-2">
+                Your Recent Generations
+                {isGeneratingThumbnails && (
+                  <span className="ml-2 text-sm text-muted-foreground font-normal">
+                    (Generating...)
+                  </span>
+                )}
+              </h2>
+              {(() => {
+                const shouldShowSkeletons = showHomepageSkeleton || forceSkeleton || localGenerating || isGenerating || myThumbsLoading || myThumbs.some(t => t === null);
+                return shouldShowSkeletons;
+              })() ? (
+                <HomepageSkeleton />
+              ) : myThumbsLoading || myThumbs.some(t => t === null) ? (
+                <HomepageSkeleton />
+              ) : myThumbs.length === 0 ? (
+                <NoThumbnailsFound />
+              ) : (
+                <ThumbnailsGrid
+                  thumbnails={myThumbs}
+                  loading={false}
+                  onRegenerate={handleRegenerate}
+                  gridClassName="grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-4"
+                  selectedIds={selectedIds}
+                  setSelectedIds={setSelectedIds}
+                  quantity={4}
+                  isRegenerating={false}
+                  showCheckbox={true}
+                  key={`home-my-thumbs-${userLoaded ? 'user-loaded' : 'user-loading'}`} // Force re-render when user loads
+                />
+              )}
+            </>
+          );
+        })()
       )}
 
       {/* Trending Thumbnails Section - Show skeleton loading first */}
