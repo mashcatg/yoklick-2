@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Generate Dodo Payments checkout URL
-      const dodoCheckoutUrl = `${dodoConfig.checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent('https://d5dd4f150298.ngrok-free.app/checkout?subscription_id=' + subscription.subscription_id)}`;
+      const dodoCheckoutUrl = `${dodoConfig.checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent('https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=' + subscription.subscription_id)}`;
 
       // Add rate limit headers to response
       const headers = getRateLimitHeaders(authHeader, 'api');
