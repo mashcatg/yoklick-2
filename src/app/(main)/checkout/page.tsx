@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabaseClient";
 import { handleAuthentication } from "@/app/lib/authUtils";
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useCredits } from "@/app/context/CreditsContext";
 import { usePayment } from "@/app/context/PaymentContext";
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -941,5 +941,27 @@ export default function CheckoutPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] p-4 md:p-8">
+        <div className="w-full max-w-md">
+          <Card>
+            <CardHeader className="text-center">
+              <Loader2 className="h-12 w-12 text-blue-500 animate-spin mx-auto mb-2" />
+              <CardTitle className="text-xl font-bold text-blue-600 mb-1">Loading...</CardTitle>
+              <CardDescription className="text-base text-blue-600">
+                Please wait while we load your checkout details.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 } 
