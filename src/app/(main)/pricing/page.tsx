@@ -15,7 +15,19 @@ import { storeUserDataForRedirect } from '@/app/lib/authUtils';
 const getProductId = (baseName: string) => {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const envPrefix = isDevelopment ? '' : 'LIVE_';
-  return process.env[`NEXT_PUBLIC_DODO_${envPrefix}${baseName}_PRODUCT_ID`] || `${baseName.toLowerCase()}-${isDevelopment ? 'dev' : 'prod'}`;
+  const envVarName = `NEXT_PUBLIC_DODO_${envPrefix}${baseName}_PRODUCT_ID`;
+  const productId = process.env[envVarName] || `${baseName.toLowerCase()}-${isDevelopment ? 'dev' : 'prod'}`;
+  
+  // Debug logging
+  console.log(`getProductId(${baseName}):`, {
+    isDevelopment,
+    envPrefix,
+    envVarName,
+    productId,
+    hasEnvVar: !!process.env[envVarName]
+  });
+  
+  return productId;
 };
 
 interface Plan {
@@ -152,6 +164,24 @@ export default function PricingPage() {
     message: ''
   });
   const { createSubscription } = usePayment();
+
+  // Debug environment variables
+  useEffect(() => {
+    console.log('Environment Variables Debug:', {
+      NODE_ENV: process.env.NODE_ENV,
+      CREATOR_MONTHLY: process.env.NEXT_PUBLIC_DODO_CREATOR_MONTHLY_PRODUCT_ID,
+      LIVE_CREATOR_MONTHLY: process.env.NEXT_PUBLIC_DODO_LIVE_CREATOR_MONTHLY_PRODUCT_ID,
+      STARTER_MONTHLY: process.env.NEXT_PUBLIC_DODO_STARTER_MONTHLY_PRODUCT_ID,
+      PRO_MONTHLY: process.env.NEXT_PUBLIC_DODO_PRO_MONTHLY_PRODUCT_ID
+    });
+    
+    // Test product ID resolution
+    console.log('Product ID Tests:', {
+      creatorMonthly: getProductId("CREATOR_MONTHLY"),
+      starterMonthly: getProductId("STARTER_MONTHLY"),
+      proMonthly: getProductId("PRO_MONTHLY")
+    });
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
