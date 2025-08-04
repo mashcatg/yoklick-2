@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import DodoPayments from "dodopayments";
-
-const DODO_API_KEY = process.env.DODO_API_KEY;
+import { getDodoConfig, getDodoClient } from "@/app/lib/dodoConfig";
 
 export async function GET(req: NextRequest) {
   try {
@@ -49,23 +47,29 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Get Dodo Payments configuration
+    let dodoConfig;
+    try {
+      dodoConfig = getDodoConfig();
+    } catch (error: any) {
+      console.error("Dodo Payments configuration error:", error.message);
+      return NextResponse.json({ 
+        error: "Dodo Payments not configured properly",
+        details: error.message
+      }, { status: 503 });
+    }
+
     // Initialize Dodo Payments client
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const environment = isDevelopment ? 'test_mode' : 'live_mode';
-    
-    const client = new DodoPayments({
-      bearerToken: DODO_API_KEY!,
-      environment: environment,
-    });
+    const client = getDodoClient();
 
     try {
       // Get fresh subscription data from Dodo Payments
       const dodoSubscription = await client.subscriptions.retrieve(subscription.subscription_id);
       
-      // Get recent payments
-      const paymentsResponse = await fetch(`https://${isDevelopment ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscription.subscription_id}&limit=5`, {
+      // Get recent payments using the configured API key
+      const paymentsResponse = await fetch(`https://${dodoConfig.environment === 'test_mode' ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscription.subscription_id}&limit=5`, {
         headers: {
-          'Authorization': `Bearer ${DODO_API_KEY}`,
+          'Authorization': `Bearer ${dodoConfig.apiKey}`,
           'Content-Type': 'application/json'
         }
       });
