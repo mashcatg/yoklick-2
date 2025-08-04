@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import DodoPayments from "dodopayments";
 import { rateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
-
-const DODO_API_KEY = process.env.DODO_API_KEY;
+import { getDodoConfig, getDodoClient } from "@/app/lib/dodoConfig";
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting
-  const rateLimitResult = rateLimit(req, 'subscription');
+  const rateLimitResult = rateLimit(req, 'api');
   if (!rateLimitResult.allowed) {
     return rateLimitResult.response;
   }
 
   try {
-    // Check if Dodo Payments is configured
-    if (!DODO_API_KEY) {
+    // Get Dodo Payments configuration
+    let dodoConfig;
+    try {
+      dodoConfig = getDodoConfig();
+    } catch (error: any) {
+      console.error("Dodo Payments configuration error:", error.message);
       return NextResponse.json({ 
-        error: "Dodo Payments not configured. Please set up your DODO_API_KEY environment variable.",
-        details: "Payment system is not configured yet"
+        error: "Dodo Payments not configured properly",
+        details: error.message
       }, { status: 503 });
     }
 
@@ -47,13 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Initialize Dodo Payments client
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const environment = isDevelopment ? 'test_mode' : 'live_mode';
-    
-    const client = new DodoPayments({
-      bearerToken: DODO_API_KEY,
-      environment: environment,
-    });
+    const client = getDodoClient();
 
     try {
       // Create or get customer first
@@ -130,12 +126,11 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      // Generate Dodo Payments checkout URL (test vs live)
-      const checkoutBaseUrl = isDevelopment ? 'https://test.checkout.dodopayments.com' : 'https://checkout.dodopayments.com';
-      const dodoCheckoutUrl = `${checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent('https://d5dd4f150298.ngrok-free.app/checkout?subscription_id=' + subscription.subscription_id)}`;
+      // Generate Dodo Payments checkout URL
+      const dodoCheckoutUrl = `${dodoConfig.checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent('https://d5dd4f150298.ngrok-free.app/checkout?subscription_id=' + subscription.subscription_id)}`;
 
       // Add rate limit headers to response
-      const headers = getRateLimitHeaders(authHeader, 'subscription');
+      const headers = getRateLimitHeaders(authHeader, 'api');
 
       return NextResponse.json({
         success: true,
@@ -144,21 +139,15 @@ export async function POST(req: NextRequest) {
       }, { headers });
 
     } catch (error: any) {
-      if (error instanceof DodoPayments.APIError) {
-        return NextResponse.json({ 
-          error: "Dodo Payments API error",
-          details: {
-            status: error.status,
-            name: error.name,
-            message: error.message
-          }
-        }, { status: error.status || 500 });
-      } else {
-        return NextResponse.json({ 
-          error: "Failed to create subscription",
-          details: error instanceof Error ? error.message : "Unknown error"
-        }, { status: 500 });
-      }
+      console.error("Dodo Payments API error:", error);
+      return NextResponse.json({ 
+        error: "Dodo Payments API error",
+        details: {
+          status: error.status || 500,
+          name: error.name || "Error",
+          message: error.message || "Unknown error"
+        }
+      }, { status: error.status || 500 });
     }
 
   } catch (error) {
