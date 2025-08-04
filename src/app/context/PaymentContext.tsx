@@ -115,7 +115,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ productId, planType }),
+        body: JSON.stringify({ planType }),
       });
 
       if (response.ok) {

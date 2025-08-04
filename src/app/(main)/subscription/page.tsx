@@ -306,16 +306,13 @@ export default function SubscriptionPage() {
   };
 
   const getPlanDetails = (planType: string) => {
-    switch (planType?.toLowerCase()) {
-      case 'starter':
-        return { name: 'Starter Plan', credits: 50, price: 9.89, color: 'text-yellow-600' };
-      case 'creator':
-        return { name: 'Creator Plan', credits: 100, price: 18.49, color: 'text-purple-600' };
-      case 'pro':
-        return { name: 'Pro Plan', credits: 500, price: 38.89, color: 'text-blue-600' };
-      default:
-        return { name: 'Unknown Plan', credits: 0, price: 0, color: 'text-gray-600' };
-    }
+    const plans = {
+      starter: { name: 'Starter Plan', credits: 40, price: 9.89, color: 'text-yellow-600' },
+      creator: { name: 'Creator Plan', credits: 100, price: 18.89, color: 'text-purple-600' },
+      pro: { name: 'Pro Plan', credits: 300, price: 38.89, color: 'text-blue-600' }
+    };
+    
+    return plans[planType?.toLowerCase()] || { name: 'Unknown Plan', credits: 0, price: 0, color: 'text-gray-600' };
   };
 
   const calculateCreditStats = () => {

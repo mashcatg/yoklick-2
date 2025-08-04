@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { rateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
 import { getDodoConfig, getDodoClient } from "@/app/lib/dodoConfig";
+import { getProductConfig } from "@/app/lib/productConfig";
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting
@@ -42,10 +43,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 401 });
     }
 
-    const { productId, planType } = await req.json();
+    const { planType, billingCycle = 'monthly' } = await req.json();
 
-    if (!productId || !planType) {
-      return NextResponse.json({ error: "Product ID and plan type are required" }, { status: 400 });
+    if (!planType) {
+      return NextResponse.json({ error: "Plan type is required" }, { status: 400 });
+    }
+
+    // Get product configuration
+    let productConfig;
+    try {
+      productConfig = getProductConfig(planType, billingCycle);
+    } catch (error: any) {
+      console.error("Product configuration error:", error.message);
+      return NextResponse.json({ 
+        error: "Invalid plan configuration",
+        details: error.message
+      }, { status: 400 });
     }
 
     // Initialize Dodo Payments client
@@ -74,7 +87,7 @@ export async function POST(req: NextRequest) {
       // Create subscription using the official SDK
       const subscription = await client.subscriptions.create({
         customer: { customer_id: customerId },
-        product_id: productId,
+        product_id: productConfig.productId,
         quantity: 1,
         billing: {
           city: "Default City",
@@ -127,7 +140,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Generate Dodo Payments checkout URL
-      const dodoCheckoutUrl = `${dodoConfig.checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent('https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=' + subscription.subscription_id)}`;
+      const dodoCheckoutUrl = `${dodoConfig.checkoutBaseUrl}/buy/${productConfig.productId}?quantity=1&redirect_url=${encodeURIComponent('https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=' + subscription.subscription_id)}`;
 
       // Add rate limit headers to response
       const headers = getRateLimitHeaders(authHeader, 'api');

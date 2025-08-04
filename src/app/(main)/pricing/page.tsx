@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { usePayment } from '@/app/context/PaymentContext';
 import { supabase } from '@/app/lib/supabaseClient';
 import { storeUserDataForRedirect } from '@/app/lib/authUtils';
+import { getProductConfig } from '@/app/lib/productConfig';
 
 interface Plan {
   name: string;
@@ -167,6 +168,12 @@ export default function PricingPage() {
     });
 
     try {
+      // Get product configuration
+      const planType = plan.name.toLowerCase();
+      const billingCycle = billingCycle === 'yearly' ? 'yearly' : 'monthly';
+      
+      const productConfig = getProductConfig(planType, billingCycle);
+      
       // Step 1: Create subscription
       setPaymentStatus({
         step: 'creating',
@@ -174,7 +181,7 @@ export default function PricingPage() {
         planName: plan.name
       });
 
-      await createSubscription(plan.productId, plan.name.toLowerCase());
+      await createSubscription(productConfig.productId, planType);
       
       // Step 2: Redirect to payment
       setPaymentStatus({
