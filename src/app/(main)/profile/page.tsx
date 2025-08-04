@@ -55,7 +55,6 @@ export default function ProfilePage() {
         }
         setUser(user);
         
-        // Fetch user metadata from database
         const { data: userMetaData } = await supabase
           .from("users_meta")
           .select("*")
@@ -65,13 +64,11 @@ export default function ProfilePage() {
         setUserMeta(userMetaData);
         setLoading(false);
         
-        // Fetch user statistics and feedback
         await Promise.all([
           fetchUserStats(user.id),
           fetchFeedbackHistory()
         ]);
       } catch (error) {
-        console.error("Error fetching user:", error);
         toast.error("Failed to load profile");
         setLoading(false);
       }
@@ -111,7 +108,6 @@ export default function ProfilePage() {
         joinDate
       });
     } catch (error) {
-      console.error("Error fetching user stats:", error);
       toast.error("Failed to load statistics");
     } finally {
       setStatsLoading(false);
@@ -130,7 +126,6 @@ export default function ProfilePage() {
       const data = await response.json();
       setFeedbackHistory(data.feedback || []);
     } catch (error) {
-      console.error("Error fetching feedback history:", error);
       // Don't show toast for feedback loading errors as it's not critical
     } finally {
       setFeedbackLoading(false);

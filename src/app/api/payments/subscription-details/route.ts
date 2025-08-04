@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     if (subscription?.subscription_id) {
       try {
         const dodoResponse = await fetch(
-          `https://test.dodopayments.com/payments?subscription_id=${subscription.subscription_id}`,
+          `https://${process.env.NODE_ENV === 'development' ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscription.subscription_id}`,
           {
             headers: {
               "Authorization": `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,

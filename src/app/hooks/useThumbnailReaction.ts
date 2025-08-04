@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { toast } from 'sonner';
-import { ReactionCache } from '@/app/lib/reactionCache';
+import { reactionCache } from '@/app/lib/reactionCache';
 import { getUserWithFallback } from '@/app/lib/userCache';
 
 export const useThumbnailReaction = (
@@ -54,7 +54,7 @@ export const useThumbnailReaction = (
     if (!user || !thumbnailId) return;
     
     try {
-      const hasReacted = await ReactionCache.hasUserReacted(user.id, thumbnailId, false);
+      const hasReacted = await reactionCache.getUserReactions(user.id).then(reactions => reactions.has(thumbnailId));
       setHasReacted(hasReacted);
     } catch (error) {
       console.error('Error checking user reaction:', error);
@@ -66,7 +66,7 @@ export const useThumbnailReaction = (
     if (!thumbnailId) return;
     
     try {
-      const count = await ReactionCache.getReactionCount(thumbnailId, false);
+      const count = await reactionCache.getReactionCount(thumbnailId);
       setReactionCount(count);
     } catch (error) {
       console.error('Error getting reaction count:', error);
@@ -116,7 +116,7 @@ export const useThumbnailReaction = (
         setHasReacted(newHasReacted);
         setReactionCount(prev => newHasReacted ? prev + 1 : Math.max(0, prev - 1));
         
-        ReactionCache.invalidateUserReactions(currentUser.id, thumbnailId);
+        reactionCache.invalidateUserCache(currentUser.id);
         
         if (!hasReacted) {
           setShowBigHeart(true);
@@ -163,7 +163,7 @@ export const useThumbnailReaction = (
         setTimeout(() => setShowBigHeart(false), 1000);
       }
       
-      ReactionCache.invalidateUserReactions(currentUser.id, thumbnailId);
+      reactionCache.invalidateUserCache(currentUser.id);
       
     } catch (error) {
       console.error('Error handling reaction:', error);

@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const subscriptionId = searchParams.get('subscriptionId') || searchParams.get('subscription_id');
+    const subscriptionId = searchParams.get('subscription_id');
 
     if (!subscriptionId) {
       return NextResponse.json({ error: "Subscription ID is required" }, { status: 400 });

@@ -145,13 +145,11 @@ export default function SubscriptionPage() {
         .limit(1);
 
       if (subError) {
-        console.error('Error fetching subscription:', subError);
         toast.error('Failed to load subscription details');
         return;
       }
 
       if (!subscriptions || subscriptions.length === 0) {
-        console.log('No subscriptions found');
         setLoading(false);
         return;
       }
@@ -170,13 +168,10 @@ export default function SubscriptionPage() {
           });
           if (paymentsResponse.ok) {
             const paymentsData = await paymentsResponse.json();
-            console.log('Payments data:', paymentsData);
             setPayments(paymentsData.payments || paymentsData.items || []);
           } else {
-            console.error('Failed to fetch payments:', paymentsResponse.status, paymentsResponse.statusText);
           }
         } catch (error) {
-          console.error('Error fetching payments:', error);
         }
       }
 

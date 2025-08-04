@@ -35,11 +35,9 @@ class UserCache {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (user && !error) {
         this.setUser(user);
-        console.log('✅ User loaded from session and cached');
       }
     } catch (error) {
-      console.error('❌ Error loading user from session:', error);
-      // Don't throw error, just log it
+      // Silent error handling for production
     }
   }
 
@@ -73,17 +71,14 @@ class UserCache {
 
     // Return cached user if valid and not forcing refresh
     if (cached && !this.isExpired(cached) && !forceRefresh) {
-      console.log('✅ Returning cached user');
       return cached.user;
     }
 
     // Fetch fresh user data
     try {
-      console.log('🔄 Fetching fresh user data...');
       const { data: { user }, error } = await supabase.auth.getUser();
       
       if (error) {
-        console.error('❌ Error fetching user:', error);
         // Clear cache on auth errors
         this.invalidateCache();
         return null;
@@ -91,16 +86,13 @@ class UserCache {
 
       if (user) {
         this.setUser(user);
-        console.log('✅ User data refreshed and cached');
         return user;
       } else {
-        console.log('ℹ️ No user found');
         // Clear cache when no user found
         this.invalidateCache();
         return null;
       }
     } catch (error) {
-      console.error('❌ Error in getUser:', error);
       // Clear cache on any error
       this.invalidateCache();
       return null;
@@ -123,14 +115,12 @@ class UserCache {
           return session.user;
         }
       } catch (error) {
-        console.error('❌ Error getting session:', error);
         // Clear cache on session errors
         this.invalidateCache();
       }
 
       return null;
     } catch (error) {
-      console.error('❌ Error in getUserWithFallback:', error);
       // Clear cache on any error
       this.invalidateCache();
       return null;
@@ -138,19 +128,15 @@ class UserCache {
   }
 
   invalidateCache() {
-    console.log('🗑️ Invalidating user cache');
     this.cache.clear();
   }
 
   // Listen for auth state changes
   setupAuthListener() {
     supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth state changed:', event);
-      
       if (event === 'SIGNED_IN' && session?.user) {
         this.setUser(session.user);
       } else if (event === 'SIGNED_OUT') {
-        console.log('🚪 User signed out, clearing cache');
         this.invalidateCache();
         // Clear any stored session data
         if (typeof window !== 'undefined') {
@@ -187,7 +173,6 @@ class UserCache {
   // Safe logout method
   async logout() {
     try {
-      console.log('🚪 Logging out user...');
       this.invalidateCache();
       
       // Clear any stored session data
@@ -198,12 +183,10 @@ class UserCache {
       
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('❌ Error during logout:', error);
-      } else {
-        console.log('✅ User logged out successfully');
+        console.error('Error during logout:', error);
       }
     } catch (error) {
-      console.error('❌ Error in logout:', error);
+      console.error('Error in logout:', error);
       // Even if there's an error, clear the cache
       this.invalidateCache();
     }

@@ -74,8 +74,7 @@ export default function MyGenerationsPage() {
           await fetchThumbnails(0, true);
         }
       } catch (error) {
-        console.error("Error fetching initial data:", error);
-        toast.error("Failed to load some content");
+        // Silent error handling for production
       } finally {
         setLoading(false);
       }
@@ -88,7 +87,6 @@ export default function MyGenerationsPage() {
   const fetchThumbnails = async (pageNum: number, reset: boolean = false) => {
     try {
       if (!user?.id) {
-        console.log("User not available yet, skipping fetch");
         return;
       }
 
@@ -105,13 +103,13 @@ export default function MyGenerationsPage() {
 
       // Add search filter if search term exists
       if (search.trim()) {
-        query = query.ilike("prompt", `%${search.trim()}%`);
+        // Search in both prompt and user name
+        query = query.or(`prompt.ilike.%${search.trim()}%,user.name.ilike.%${search.trim()}%`);
       }
 
       const { data, error } = await query;
 
       if (error) {
-        console.error("Database error:", error);
         throw error;
       }
 
@@ -137,9 +135,7 @@ export default function MyGenerationsPage() {
         setHasMore(false);
       }
     } catch (error) {
-      console.error("Error fetching thumbnails:", error);
-      toast.error("Failed to load thumbnails");
-      // On error, also confirm no data
+      // Silent error handling for production
       if (reset) {
         setMyThumbs([]);
         setHasConfirmedNoData(true);
@@ -197,17 +193,13 @@ export default function MyGenerationsPage() {
 
   // For PromptBox2 (generate)
   const handleGenerate = async () => {
-    console.log('🚀 Generations: Generate clicked, starting generation...');
-    
     // IMMEDIATELY set skeleton state - this triggers instantly
     setForceSkeleton(true);
     setMyThumbs([null, null, null, null, null, null, null, null, null, null, null, null]);
     setLoading(true);
     
     // Start global generation state
-    startGeneration(prompt);
-    
-    console.log('✅ Generations: Force skeleton set, myThumbs = [null, null, null, null, null, null, null, null, null, null, null, null]');
+    startGeneration();
     
     try {
       const res = await fetch("/api/generate", {
@@ -246,17 +238,13 @@ export default function MyGenerationsPage() {
 
   // For ThumbnailsGrid (regenerate)
   const handleRegenerate = async (prompt: string, is_public: boolean, text_position: string) => {
-    console.log('🔄 Generations: Regenerate called:', { prompt, is_public, text_position });
-    
     // IMMEDIATELY set skeleton state - this triggers instantly
     setForceSkeleton(true);
     setMyThumbs([null, null, null, null, null, null, null, null, null, null, null, null]);
     setLoading(true);
     
     // Start global generation state
-    startGeneration(prompt);
-    
-    console.log('✅ Generations: Force skeleton set, myThumbs = [null, null, null, null, null, null, null, null, null, null, null, null]');
+    startGeneration();
     
     try {
       const res = await fetch("/api/generate", {
@@ -307,7 +295,6 @@ export default function MyGenerationsPage() {
         toast.error("Failed to download any thumbnails. Please try downloading individually.");
       }
     } catch (error) {
-      console.error('Bulk download error:', error);
       toast.error("Failed to download thumbnails. Please try again.");
     } finally {
       setIsBulkDownloading(false);

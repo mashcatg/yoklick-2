@@ -196,7 +196,6 @@ export default function PricingPage() {
       });
 
     } catch (error) {
-      console.error("Subscription error:", error);
       
       setPaymentStatus({
         step: 'error',

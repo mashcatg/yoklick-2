@@ -20,7 +20,7 @@ import ThumbnailsGrid from "@/app/components/ThumbnailsGrid";
 import NoResultsFound from "@/app/components/NoResultsFound";
 import NoThumbnailsFound from "@/app/components/NoThumbnailsFound";
 import { bulkDownloadImages } from "@/app/lib/bulkDownload";
-import { ReactionCache } from "@/app/lib/reactionCache";
+import { reactionCache } from "@/app/lib/reactionCache";
 import { getUserWithFallback } from "@/app/lib/userCache";
 
 export default function MyLikedPage() {
@@ -68,7 +68,6 @@ export default function MyLikedPage() {
           await fetchLikedThumbnails(0, true);
         }
       } catch (error) {
-        console.error("Error fetching initial data:", error);
         toast.error("Failed to load some content");
       } finally {
         setLoading(false);
@@ -87,9 +86,9 @@ export default function MyLikedPage() {
       const to = from + pageSize - 1;
 
       // Use cached user reactions for faster loading
-      const userReactions = await ReactionCache.getUserReactions(user.id);
+      const userReactions = await reactionCache.getUserReactions(user.id);
       
-      if (!userReactions || userReactions.length === 0) {
+      if (!userReactions || userReactions.size === 0) {
         if (reset) {
           setLikedThumbs([]);
           setHasConfirmedNoData(true);
@@ -98,7 +97,7 @@ export default function MyLikedPage() {
         return;
       }
 
-      const thumbnailIds = userReactions.map((item: any) => item.thumbnail_id);
+      const thumbnailIds = Array.from(userReactions);
 
       let query = supabase
         .from("thumbnails")
@@ -114,7 +113,6 @@ export default function MyLikedPage() {
       const { data, error } = await query.range(from, to);
 
       if (error) {
-        console.error("Database error:", error);
         throw error;
       }
 
@@ -138,7 +136,6 @@ export default function MyLikedPage() {
         setHasMore(false);
       }
     } catch (error) {
-      console.error("Error fetching liked thumbnails:", error);
       toast.error("Failed to load liked thumbnails");
       // On error, also confirm no data
       if (reset) {
@@ -279,7 +276,6 @@ export default function MyLikedPage() {
         toast.error("Failed to download any thumbnails. Please try downloading individually.");
       }
     } catch (error) {
-      console.error('Bulk download error:', error);
       toast.error("Failed to download thumbnails. Please try again.");
     } finally {
       setIsBulkDownloading(false);

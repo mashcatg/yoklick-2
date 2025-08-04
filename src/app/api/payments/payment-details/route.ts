@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch detailed payment information from DodoPayments
     const dodoResponse = await fetch(
-      `https://test.dodopayments.com/payments/${paymentId}`,
+      `https://${process.env.NODE_ENV === 'development' ? 'test' : 'live'}.dodopayments.com/payments/${paymentId}`,
       {
         headers: {
           "Authorization": `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,

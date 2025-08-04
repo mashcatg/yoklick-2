@@ -12,9 +12,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`https://test.dodopayments.com/payments/${paymentId}`, {
+    const response = await fetch(`https://${process.env.NODE_ENV === 'development' ? 'test' : 'live'}.dodopayments.com/payments/${paymentId}`, {
       headers: {
-        'Authorization': 'Bearer 3QTS0SADKkPuZg1e.O2y69hs3glWtuwAnPksHxiIRkDNUiWM95KsUp_bhNtzkjftN'
+        'Authorization': `Bearer ${process.env.DODO_API_KEY}`
       }
     });
 
@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error fetching payment details:', error);
     return NextResponse.json(
       { error: 'Failed to fetch payment details' },
       { status: 500 }

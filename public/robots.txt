@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://yoklick.com/sitemap.xml
+
+# Disallow admin and debug pages
+Disallow: /admin/
+Disallow: /debug/
+Disallow: /api/
+Disallow: /auth/callback/
+Disallow: /auth/reset/
+
+# Allow important pages
+Allow: /
+Allow: /explore
+Allow: /generations
+Allow: /liked
+Allow: /thumbnails
+Allow: /pricing
+Allow: /subscription
+Allow: /profile
+Allow: /privacy
+Allow: /terms
+Allow: /sitemap
+
+# Crawl delay for respectful crawling
+Crawl-delay: 1 

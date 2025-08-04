@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/app/lib/supabaseClient";
+import { getUserWithFallback } from "@/app/lib/userCache";
+import { reactionCache } from "@/app/lib/reactionCache";
+import { userDataCache } from "@/app/lib/userDataCache";
 import ThumbnailCard from "./ThumbnailCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ReactionCache } from "@/app/lib/reactionCache";
-import { userDataCache } from "@/app/lib/userDataCache";
-import { getUserWithFallback } from "@/app/lib/userCache";
 
 interface Thumbnail {
   id: string;
   image_url: string;
   prompt: string;
+  text_position?: string;
   user?: {
     id: string;
     name: string;
@@ -25,8 +25,8 @@ interface Thumbnail {
 
 interface ThumbnailsGridProps {
   thumbnails: (Thumbnail | null)[];
-  loading?: boolean;
-  onRegenerate?: (prompt: string, is_public: boolean, text_position: string) => void;
+  loading: boolean;
+  onRegenerate: (prompt: string, is_public: boolean, text_position: string) => void;
   gridClassName?: string;
   selectedIds?: string[];
   setSelectedIds?: (ids: string[]) => void;
@@ -37,151 +37,131 @@ interface ThumbnailsGridProps {
 
 export default function ThumbnailsGrid({
   thumbnails,
-  loading = false,
+  loading,
   onRegenerate,
   gridClassName = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4",
   selectedIds = [],
   setSelectedIds,
-  quantity = 12,
+  quantity,
   isRegenerating = false,
-  showCheckbox = false
+  showCheckbox = false,
 }: ThumbnailsGridProps) {
   const [user, setUser] = useState<any>(null);
   const [userReactions, setUserReactions] = useState<Set<string>>(new Set());
   const [reactionCounts, setReactionCounts] = useState<Map<string, number>>(new Map());
   const [enhancedThumbnails, setEnhancedThumbnails] = useState<(Thumbnail | null)[]>(thumbnails);
+  const [userLoaded, setUserLoaded] = useState(false);
 
   // Get current user using smart cache
   useEffect(() => {
-    const getUser = async () => {
+    const loadUser = async () => {
       try {
         const userData = await getUserWithFallback();
         if (userData) {
-          console.log('✅ User loaded in ThumbnailsGrid:', userData.id);
           setUser(userData);
-        } else {
-          console.log('ℹ️ No user found in ThumbnailsGrid');
+          setUserLoaded(true);
         }
       } catch (error) {
-        console.error('❌ Error loading user in ThumbnailsGrid:', error);
+        // Silent error handling for production
       }
     };
-    getUser();
+
+    loadUser();
   }, []);
 
-  // Batch load user data for all thumbnails
+  // Enhance thumbnails with user data
   useEffect(() => {
-    const loadUserData = async () => {
+    const enhanceThumbnails = async () => {
       if (!thumbnails || thumbnails.length === 0) return;
 
-      // Get all user IDs that need data
-      const userIdsToFetch = thumbnails
-        .filter(thumb => thumb && thumb.user_id && (!thumb.user || !thumb.user.name))
-        .map(thumb => thumb!.user_id)
-        .filter((id): id is string => id !== undefined) // Type guard to remove undefined
-        .filter((id, index, arr) => arr.indexOf(id) === index); // Remove duplicates
-
-      if (userIdsToFetch.length === 0) {
-        setEnhancedThumbnails(thumbnails);
-        return;
-      }
-
       try {
-        // Batch fetch user data
-        const userDataMap = await userDataCache.batchGetUserData(userIdsToFetch);
+        const validThumbnails = thumbnails.filter(thumb => thumb !== null) as Thumbnail[];
+        const userIds = [...new Set(validThumbnails.map(thumb => thumb.user_id).filter(Boolean))] as string[];
+        
+        if (userIds.length === 0) {
+          setEnhancedThumbnails(thumbnails);
+          return;
+        }
 
-        // Enhance thumbnails with user data
+        const userData = await userDataCache.batchGetUserData(userIds);
         const enhanced = thumbnails.map(thumb => {
-          if (!thumb || !thumb.user_id) return thumb;
-          
-          const userData = userDataMap.get(thumb.user_id);
-          if (userData && (!thumb.user || !thumb.user.name)) {
-            return {
-              ...thumb,
-              user: {
-                id: userData.id,
-                name: userData.name,
-                avatar_url: userData.avatar_url,
-                email: userData.email
-              }
-            };
-          }
-          return thumb;
+          if (!thumb) return null;
+          const userInfo = userData.get(thumb.user_id || '');
+          return {
+            ...thumb,
+            user: userInfo || thumb.user
+          };
         });
 
         setEnhancedThumbnails(enhanced);
       } catch (error) {
-        console.error('Error loading user data:', error);
-        setEnhancedThumbnails(thumbnails);
+        // Silent error handling for production
+      }
+    };
+
+    enhanceThumbnails();
+  }, [thumbnails]);
+
+  // Load user data for reaction handling
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!userLoaded) return;
+
+      try {
+        const userData = await getUserWithFallback();
+        if (userData?.id) {
+          setUser(userData);
+        }
+      } catch (error) {
+        // Silent error handling for production
       }
     };
 
     loadUserData();
-  }, [thumbnails]);
+  }, [userLoaded]);
 
-  // Batch load reactions for all thumbnails
+  // Load reaction data for all thumbnails
   useEffect(() => {
-    const loadReactions = async () => {
-      if (!user || !enhancedThumbnails || enhancedThumbnails.length === 0) {
-        console.log('❌ Cannot load reactions:', { 
-          hasUser: !!user, 
-          hasThumbnails: !!enhancedThumbnails, 
-          thumbnailsLength: enhancedThumbnails?.length 
-        });
+    const loadReactionData = async () => {
+      if (!user?.id || !thumbnails || thumbnails.length === 0) {
         return;
       }
 
       try {
-        console.log('🔄 Loading reactions for user:', user.id);
-        console.log('🔍 User object:', {
-          id: user.id,
-          email: user.email,
-          user_metadata: user.user_metadata
-        });
-        
-        // Get all valid thumbnail IDs
-        const validThumbnailIds = enhancedThumbnails
-          .filter(thumb => thumb !== null)
-          .map(thumb => thumb!.id.toString()); // Ensure IDs are strings
+        // Get valid thumbnail IDs (filter out null thumbnails)
+        const validThumbnailIds = thumbnails
+          .filter(thumb => thumb && thumb.id)
+          .map(thumb => thumb!.id.toString());
 
         if (validThumbnailIds.length === 0) {
-          console.log('❌ No valid thumbnail IDs found');
           return;
         }
 
-        console.log('📋 Valid thumbnail IDs:', validThumbnailIds);
+        console.log("Valid thumbnail IDs for reaction loading:", validThumbnailIds);
+        console.log("User ID for reaction loading:", user.id);
 
-        // Batch load user reactions and counts
-        const [userReactionsSet, countsMap] = await Promise.all([
-          ReactionCache.batchCheckUserReactions(user.id, validThumbnailIds),
-          ReactionCache.batchGetReactionCounts(validThumbnailIds)
+        // Batch load user reactions and reaction counts
+        const [userReactions, reactionCounts] = await Promise.all([
+          reactionCache.batchCheckUserReactions(user.id, validThumbnailIds).catch(() => new Set<string>()),
+          reactionCache.batchGetReactionCounts(validThumbnailIds).catch(() => new Map<string, number>())
         ]);
 
-        console.log('✅ Reactions loaded:', {
-          userReactions: Array.from(userReactionsSet),
-          counts: Object.fromEntries(countsMap),
-          thumbnailIds: validThumbnailIds
-        });
+        console.log("User reactions loaded:", userReactions);
+        console.log("Reaction counts loaded:", reactionCounts);
 
-        setUserReactions(userReactionsSet);
-        setReactionCounts(countsMap);
+        setUserReactions(userReactions);
+        setReactionCounts(reactionCounts);
       } catch (error) {
-        console.error('❌ Error loading reactions:', error);
+        // Silent error handling for production
+        console.error("Error loading reaction data:", error);
+        // Set default values on error
+        setUserReactions(new Set());
+        setReactionCounts(new Map());
       }
     };
 
-    loadReactions();
-  }, [user, enhancedThumbnails]);
-
-  // Debug: Log when reaction data changes
-  useEffect(() => {
-    console.log('🔄 Reaction data updated in ThumbnailsGrid:', {
-      userReactionsSize: userReactions.size,
-      reactionCountsSize: reactionCounts.size,
-      userReactionsArray: Array.from(userReactions),
-      reactionCountsObject: Object.fromEntries(reactionCounts)
-    });
-  }, [userReactions, reactionCounts]);
+    loadReactionData();
+  }, [user?.id, thumbnails]);
 
   const handleSelect = (id: string, selected: boolean) => {
     if (!setSelectedIds) return;
@@ -201,7 +181,7 @@ export default function ThumbnailsGrid({
   if (loading) {
     return (
       <div className={`grid ${gridClassName}`}>
-        {Array.from({ length: quantity }, (_, index) => (
+        {Array.from({ length: quantity || 12 }, (_, index) => (
           <div key={`skeleton-${index}`} className="relative group rounded-xl overflow-hidden hover:shadow-lg transition-shadow border border-border flex flex-col col-span-1 aspect-[16/9]">
             <div className="absolute inset-0 w-full h-full">
               <Skeleton className="h-full w-full rounded-xl" />
@@ -229,21 +209,6 @@ export default function ThumbnailsGrid({
         const hasReacted = userReactions.has((thumbnail.id || '').toString());
         const reactionCount = reactionCounts.get((thumbnail.id || '').toString()) || 0;
         
-        console.log('📤 Passing reaction data to ThumbnailCard:', {
-          thumbnailId: thumbnail.id,
-          thumbnailIdType: typeof thumbnail.id,
-          hasReacted,
-          reactionCount,
-          userReactionsSize: userReactions.size,
-          reactionCountsSize: reactionCounts.size,
-          userReactionsArray: Array.from(userReactions),
-          reactionCountsObject: Object.fromEntries(reactionCounts),
-          userReactionsHasThumbnail: userReactions.has(thumbnail.id || ''),
-          reactionCountsHasThumbnail: reactionCounts.has(thumbnail.id || ''),
-          userReactionsContainsThumbnail: Array.from(userReactions).includes(thumbnail.id || ''),
-          userReactionsContainsThumbnailString: Array.from(userReactions).includes((thumbnail.id || '').toString())
-        });
-
         return (
           <ThumbnailCard
             key={uniqueKey(thumbnail, index)}

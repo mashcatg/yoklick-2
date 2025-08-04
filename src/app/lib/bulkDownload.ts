@@ -1,124 +1,83 @@
-export const bulkDownloadImages = async (thumbnails: any[], onProgress?: (downloaded: number, total: number) => void) => {
-  if (thumbnails.length === 0) return 0;
+export async function bulkDownloadImages(thumbnails: any[]): Promise<number> {
+  if (typeof window === 'undefined') {
+    return 0; // Server-side rendering
+  }
 
-  let downloadedCount = 0;
   const totalCount = thumbnails.length;
+  let downloadedCount = 0;
 
-  console.log(`Starting bulk download of ${totalCount} thumbnails`);
+  // Create a temporary container for downloads
+  const tempContainer = document.createElement('div');
+  tempContainer.style.position = 'absolute';
+  tempContainer.style.left = '-9999px';
+  tempContainer.style.top = '-9999px';
+  document.body.appendChild(tempContainer);
 
   try {
-    // Download each thumbnail one by one with proper delays
-    for (let i = 0; i < thumbnails.length; i++) {
+    for (let i = 0; i < totalCount; i++) {
       const thumb = thumbnails[i];
-      
+      if (!thumb?.image_url) continue;
+
       try {
-        console.log(`Downloading ${i + 1}/${totalCount}: ${thumb.id}`);
+        // Fetch the image
+        const response = await fetch(thumb.image_url);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        if (!blob.type.startsWith('image/')) {
+          throw new Error('Response is not an image');
+        }
+
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `thumbnail_${thumb.id || i}.jpg`;
+        link.style.display = 'none';
+
+        // Add to temporary container and trigger download
+        tempContainer.appendChild(link);
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        downloadedCount++;
         
-        // Create a unique filename
-        const safePrompt = thumb.prompt?.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30) || 'thumbnail';
-        const filename = `thumbnail-${thumb.id}-${safePrompt}.jpg`;
-        
-        // Method 1: Try direct fetch first
-        let success = false;
-        
+        // Small delay to prevent browser from blocking multiple downloads
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (fetchError) {
+        // Fallback: try to open in new tab
         try {
-          const response = await fetch(thumb.image_url, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-              'Accept': 'image/*',
-              'Cache-Control': 'no-cache'
-            },
-            // Add timeout
-            signal: AbortSignal.timeout(10000) // 10 second timeout
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const blob = await response.blob();
-          
-          // Verify it's actually an image
-          if (!blob.type.startsWith('image/')) {
-            throw new Error('Response is not an image');
-          }
-          
-          const url = window.URL.createObjectURL(blob);
-          
-          // Create download link
           const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
+          link.href = thumb.image_url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
           link.style.display = 'none';
-          
-          // Add to DOM and trigger download
-          document.body.appendChild(link);
+
+          tempContainer.appendChild(link);
           link.click();
-          
-          // Clean up immediately
-          try {
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-          } catch (e) {
-            console.error('Cleanup error:', e);
-          }
-          
-          success = true;
+          document.body.removeChild(link);
+
           downloadedCount++;
-          console.log(`✓ Downloaded ${thumb.id} (${downloadedCount}/${totalCount})`);
-          
-        } catch (fetchError) {
-          console.error(`Fetch failed for ${thumb.id}:`, fetchError);
-          
-          // Method 2: Try opening in new tab as fallback
-          try {
-            console.log(`Trying fallback method for ${thumb.id}`);
-            
-            // Create a temporary link to open in new tab
-            const link = document.createElement('a');
-            link.href = thumb.image_url;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.style.display = 'none';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Give user time to save manually
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            success = true;
-            downloadedCount++;
-            console.log(`✓ Opened ${thumb.id} in new tab (${downloadedCount}/${totalCount})`);
-            
-          } catch (fallbackError) {
-            console.error(`Fallback also failed for ${thumb.id}:`, fallbackError);
-          }
+        } catch (fallbackError) {
+          // Silent error handling for production
         }
-        
-        // Update progress
-        if (onProgress) {
-          onProgress(downloadedCount, totalCount);
-        }
-
-        // Wait between downloads to prevent browser blocking
-        if (i < thumbnails.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 500)); // Increased delay
-        }
-
-      } catch (error) {
-        console.error(`Error downloading ${thumb.id}:`, error);
-        // Continue with next thumbnail instead of failing completely
       }
     }
-    
-    console.log(`Bulk download completed: ${downloadedCount}/${totalCount} thumbnails downloaded`);
-    return downloadedCount;
-    
   } catch (error) {
-    console.error('Bulk download error:', error);
-    return downloadedCount; // Return what we managed to download
+    // Silent error handling for production
+  } finally {
+    // Clean up temporary container
+    try {
+      document.body.removeChild(tempContainer);
+    } catch (e) {
+      // Silent cleanup error
+    }
   }
-}; 
+
+  return downloadedCount;
+} 

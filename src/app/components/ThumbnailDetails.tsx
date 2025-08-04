@@ -14,6 +14,7 @@ interface Thumbnail {
   id: string;
   image_url: string;
   prompt: string;
+  text_position?: string;
   user?: {
     id: string;
     name: string;

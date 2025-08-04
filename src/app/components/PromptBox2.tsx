@@ -544,7 +544,7 @@ export const PromptBox2: React.FC<PromptBox2Props> = ({
                     type="submit"
                     onClick={() => {
                       if (hasValue && !isGenerating && !disabled) {
-                        startGeneration(value);
+                        startGeneration();
                         onSubmit();
                       }
                     }}

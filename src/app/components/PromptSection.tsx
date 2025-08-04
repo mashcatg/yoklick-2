@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { PromptBox2 } from "./PromptBox2";
+import { useGeneration } from "@/app/context/GenerationContext";
 
 interface PromptSectionProps {
   value: string;
@@ -117,6 +118,7 @@ export default function PromptSection({
   className = "",
   disabled = false
 }: PromptSectionProps) {
+  const { forceHomepageSkeleton } = useGeneration();
   const [hydrated, setHydrated] = useState(false);
   const [randomSuggestions, setRandomSuggestions] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);

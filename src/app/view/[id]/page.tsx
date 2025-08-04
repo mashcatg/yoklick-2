@@ -16,6 +16,7 @@ import { getUserDisplayName, getUserAvatar, getUserInitials, formatUserDate, ens
 import { bulkDownloadImages } from "@/app/lib/bulkDownload";
 import { getUserWithFallback } from "@/app/lib/userCache";
 import { userDataCache } from "@/app/lib/userDataCache";
+import { mapTextPositionToAPI } from "@/lib/utils";
 
 interface Thumbnail {
   id: string;
@@ -425,7 +426,7 @@ export default function ThumbnailView() {
         body: JSON.stringify({
           prompt: thumbnail.prompt,
           is_public: thumbnail.is_public,
-          text_position: thumbnail.text_position || "auto",
+          text_position: mapTextPositionToAPI(thumbnail.text_position || "auto"),
         }),
       });
       if (!res.ok) {
@@ -765,6 +766,7 @@ export default function ThumbnailView() {
             <ThumbnailsGrid
               thumbnails={relatedThumbnails}
               loading={false}
+              onRegenerate={handleRelatedRegenerate}
               gridClassName="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
               selectedIds={selectedIds}
               setSelectedIds={setSelectedIds}

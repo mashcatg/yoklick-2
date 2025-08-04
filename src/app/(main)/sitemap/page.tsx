@@ -10,6 +10,7 @@ export default function SitemapPage() {
         { href: "/", label: "Home", description: "AI Thumbnail Generator" },
         { href: "/explore", label: "Explore", description: "Discover public thumbnails" },
         { href: "/generations", label: "My Generations", description: "Your generated thumbnails" },
+        { href: "/liked", label: "Liked Thumbnails", description: "Your favorite thumbnails" },
         { href: "/profile", label: "Profile", description: "User profile and settings" },
       ]
     },
@@ -28,6 +29,13 @@ export default function SitemapPage() {
       links: [
         { href: "/edit-profile", label: "Edit Profile", description: "Update your profile information" },
         { href: "/change-password", label: "Change Password", description: "Update your password" },
+      ]
+    },
+    {
+      title: "Content & Discovery",
+      links: [
+        { href: "/thumbnails", label: "Public Thumbnails", description: "Browse all public thumbnails" },
+        { href: "/view", label: "View Thumbnail", description: "Detailed thumbnail view" },
       ]
     },
     {

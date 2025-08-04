@@ -47,6 +47,11 @@ export default function ExplorePage() {
   const [forceSkeleton, setForceSkeleton] = useState(false); // Force skeleton display
   const { refreshCredits } = useCredits();
   const { isGenerating, stopGeneration, startGeneration } = useGeneration();
+  
+  // PromptBox2 state for explore page
+  const [prompt, setPrompt] = useState("");
+  const [privacy, setPrivacy] = useState(true); // true = public
+  const [textPosition, setTextPosition] = useState("auto");
 
   // Fetch user session and thumbnails (only once on mount)
   useEffect(() => {
@@ -74,8 +79,7 @@ export default function ExplorePage() {
         
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching initial data:", error);
-        toast.error("Failed to load some content");
+        // Silent error handling for production
         setLoading(false);
       }
     };
@@ -108,7 +112,8 @@ export default function ExplorePage() {
 
       // Apply search filter if search term exists
       if (search.trim()) {
-        query = query.ilike("prompt", `%${search.trim()}%`);
+        // Search in both prompt and user name
+        query = query.or(`prompt.ilike.%${search.trim()}%,user.name.ilike.%${search.trim()}%`);
       }
 
       // Simple pagination with the randomized view
@@ -116,8 +121,7 @@ export default function ExplorePage() {
         .range(pageNum * 12, (pageNum + 1) * 12 - 1);
 
       if (error) {
-        console.error("Database query error:", error);
-        // Don't throw error, just log it and continue
+        // Silent error handling for production
       }
 
       if (data && data.length > 0) {
@@ -140,8 +144,7 @@ export default function ExplorePage() {
         setHasMore(false);
       }
     } catch (error) {
-      console.error("Error fetching thumbnails:", error);
-      // Only show error if we have no data at all
+      // Silent error handling for production
       if (publicThumbs.length === 0 || reset) {
         toast.error("Failed to load thumbnails. Please try again.");
       }
@@ -201,26 +204,22 @@ export default function ExplorePage() {
   }, [search]);
 
   const handleGenerate = async () => {
-    console.log('🚀 Explore: Generate clicked, starting generation...');
-    
     // IMMEDIATELY set skeleton state - this triggers instantly
     setForceSkeleton(true);
     setPublicThumbs([null, null, null, null, null, null, null, null, null, null, null, null]);
     setLoading(true);
     
     // Start global generation state
-    startGeneration("");
-    
-    console.log('✅ Explore: Force skeleton set, publicThumbs = [null, null, null, null, null, null, null, null, null, null, null, null]');
+    startGeneration();
     
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: "",
-          is_public: true,
-          text_position: "auto",
+          prompt,
+          is_public: privacy,
+          text_position: textPosition,
         }),
       });
       if (!res.ok) {
@@ -246,17 +245,13 @@ export default function ExplorePage() {
   };
 
   const handleRegenerate = async (prompt: string, is_public: boolean, text_position: string) => {
-    console.log('🔄 Explore: Regenerate called:', { prompt, is_public, text_position });
-    
     // IMMEDIATELY set skeleton state - this triggers instantly
     setForceSkeleton(true);
     setPublicThumbs([null, null, null, null, null, null, null, null, null, null, null, null]);
     setLoading(true);
     
     // Start global generation state
-    startGeneration(prompt);
-    
-    console.log('✅ Explore: Force skeleton set, publicThumbs = [null, null, null, null, null, null, null, null, null, null, null, null]');
+    startGeneration();
     
     try {
       const res = await fetch("/api/generate", {
@@ -308,7 +303,7 @@ export default function ExplorePage() {
         toast.error("Failed to download any thumbnails. Please try downloading individually.");
       }
     } catch (error) {
-      console.error('Bulk download error:', error);
+      // Silent error handling for production
       toast.error("Failed to download thumbnails. Please try again.");
     } finally {
       setIsBulkDownloading(false);
@@ -375,14 +370,14 @@ export default function ExplorePage() {
       
       <div className="animate-element animate-delay-300">
         <PromptSection
-          value=""
-          onChange={() => {}}
+          value={prompt}
+          onChange={setPrompt}
           onSubmit={handleGenerate}
           isLoading={isGenerating}
-          textPosition="auto"
-          onTextPositionChange={() => {}}
-          isPublic={true}
-          onIsPublicChange={() => {}}
+          textPosition={textPosition as any}
+          onTextPositionChange={setTextPosition as any}
+          isPublic={privacy}
+          onIsPublicChange={setPrivacy}
           onVoiceClick={handleVoiceInput}
           disabled={isGenerating}
         />

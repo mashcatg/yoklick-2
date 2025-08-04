@@ -15,27 +15,19 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('🔄 Handling OAuth callback...');
-        
-        // Get the session from the URL
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('❌ Error getting session:', error);
           setError('Authentication failed. Please try again.');
           setLoading(false);
           return;
         }
 
         if (data.session?.user) {
-          
-          // Store user data for potential redirects
           storeUserDataForRedirect(data.session.user.id, data.session.user.email || '');
           
-          // Set cookie
           document.cookie = `sb-access-token=${data.session.access_token}; path=/`;
           
-          // Redirect to home page
           router.push('/');
         } else {
           setError('Authentication failed. Please try again.');

@@ -14,7 +14,6 @@ export async function GET() {
       const { data: buckets, error: listError } = await supabase.storage.listBuckets();
       
       if (listError) {
-        console.error('Error listing buckets:', listError);
         return NextResponse.json({ 
           error: 'Cannot list buckets',
           message: listError.message,
@@ -63,7 +62,6 @@ export async function GET() {
     }
     
   } catch (error) {
-    console.error('Storage check error:', error);
     return NextResponse.json({ 
       error: 'Storage check failed',
       message: error instanceof Error ? error.message : 'Unknown error'

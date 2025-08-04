@@ -3,304 +3,312 @@ import { NextRequest, NextResponse } from 'next/server';
 interface RateLimitConfig {
   windowMs: number;
   maxRequests: number;
-  message?: string;
-  burstLimit?: number;
-  cooldownMs?: number;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
+  keyGenerator?: (req: NextRequest) => string;
+  handler?: (req: NextRequest) => NextResponse;
+  onLimitReached?: (req: NextRequest) => void;
 }
 
-const rateLimitConfigs: Record<string, RateLimitConfig> = {
-  // Authentication endpoints - Very strict
-  'auth': { 
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5, 
-    message: 'Too many authentication attempts. Please try again later.',
-    burstLimit: 3,
-    cooldownMs: 30 * 60 * 1000 // 30 minutes cooldown
-  },
-  
-  // Sign up/Sign in - Extra strict
-  'signup': { 
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 3, 
-    message: 'Too many signup attempts. Please try again later.',
-    burstLimit: 2,
-    cooldownMs: 60 * 60 * 1000 // 1 hour cooldown
-  },
-  
-  'signin': { 
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5, 
-    message: 'Too many signin attempts. Please try again later.',
-    burstLimit: 3,
-    cooldownMs: 30 * 60 * 1000 // 30 minutes cooldown
-  },
-  
-  // Password reset - Very strict
-  'password_reset': { 
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 3, 
-    message: 'Too many password reset attempts. Please try again later.',
-    burstLimit: 2,
-    cooldownMs: 60 * 60 * 1000 // 1 hour cooldown
-  },
-  
-  // Generation endpoints - Expensive operations
-  'generate': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 10, 
-    message: 'Too many generation requests. Please wait before generating more.',
-    burstLimit: 5,
-    cooldownMs: 5 * 60 * 1000 // 5 minutes cooldown
-  },
-  
-  // Regenerate - Similar to generate
-  'regenerate': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 8, 
-    message: 'Too many regeneration requests. Please wait before regenerating more.',
-    burstLimit: 4,
-    cooldownMs: 5 * 60 * 1000 // 5 minutes cooldown
-  },
-  
-  // Payment endpoints - Sensitive
-  'payment': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20, 
-    message: 'Too many payment requests. Please try again later.',
-    burstLimit: 10,
-    cooldownMs: 10 * 60 * 1000 // 10 minutes cooldown
-  },
-  
-  // Subscription management
-  'subscription': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 15, 
-    message: 'Too many subscription requests. Please try again later.',
-    burstLimit: 8,
-    cooldownMs: 5 * 60 * 1000 // 5 minutes cooldown
-  },
-  
-  // Admin endpoints - Moderate
-  'admin': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 30, 
-    message: 'Too many admin requests. Please try again later.',
-    burstLimit: 15,
-    cooldownMs: 2 * 60 * 1000 // 2 minutes cooldown
-  },
-  
-  // User data endpoints
-  'user_data': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 50, 
-    message: 'Too many user data requests. Please try again later.',
-    burstLimit: 25,
-    cooldownMs: 1 * 60 * 1000 // 1 minute cooldown
-  },
-  
-  // Search endpoints
-  'search': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 50, 
-    message: 'Too many search requests. Please try again later.',
-    burstLimit: 25,
-    cooldownMs: 1 * 60 * 1000 // 1 minute cooldown
-  },
-  
-  // Track user behavior - Analytics
-  'track_behavior': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, 
-    message: 'Too many tracking requests.',
-    burstLimit: 50,
-    cooldownMs: 30 * 1000 // 30 seconds cooldown
-  },
-  
-  // Webhook endpoints
-  'webhook': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 50, 
-    message: 'Too many webhook requests.',
-    burstLimit: 25,
-    cooldownMs: 1 * 60 * 1000 // 1 minute cooldown
-  },
-  
-  // Cron jobs
-  'cron': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 10, 
-    message: 'Too many cron job requests.',
-    burstLimit: 5,
-    cooldownMs: 5 * 60 * 1000 // 5 minutes cooldown
-  },
-  
-  // General API endpoints
-  'api': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, 
-    message: 'Too many requests from this IP.',
-    burstLimit: 50,
-    cooldownMs: 1 * 60 * 1000 // 1 minute cooldown
-  },
-  
-  // Default
-  'default': { 
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, 
-    message: 'Too many requests.',
-    burstLimit: 50,
-    cooldownMs: 1 * 60 * 1000 // 1 minute cooldown
-  }
-};
-
-// Enhanced in-memory store for rate limiting
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
-  burstCount: number;
-  lastRequestTime: number;
-  cooldownUntil?: number;
-}
-
-const rateLimitStore = new Map<string, RateLimitEntry>();
-
-// Enhanced IP detection
-function getClientIP(req: NextRequest): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  const realIP = req.headers.get('x-real-ip');
-  const cfConnectingIP = req.headers.get('cf-connecting-ip');
-  
-  if (forwarded) {
-    // Handle multiple IPs in x-forwarded-for
-    const ips = forwarded.split(',').map(ip => ip.trim());
-    return ips[0] || 'unknown';
-  }
-  
-  return cfConnectingIP || realIP || 'unknown';
-}
-
-// Enhanced rate limiting with burst protection and cooldown
-export function rateLimit(req: NextRequest, type: string = 'default'): { allowed: boolean; response?: NextResponse } {
-  const config = rateLimitConfigs[type] || rateLimitConfigs['default'];
-  const clientIP = getClientIP(req);
-  
-  const key = `${type}:${clientIP}`;
-  const now = Date.now();
-  
-  // Get or create rate limit entry
-  let entry = rateLimitStore.get(key);
-  if (!entry || now > entry.resetTime) {
-    entry = { 
-      count: 0, 
-      resetTime: now + config.windowMs,
-      burstCount: 0,
-      lastRequestTime: now
-    };
-    rateLimitStore.set(key, entry);
-  }
-  
-  // Check cooldown period
-  if (entry.cooldownUntil && now < entry.cooldownUntil) {
-    const remainingCooldown = Math.ceil((entry.cooldownUntil - now) / 1000);
-    const response = NextResponse.json(
-      { 
-        error: config.message || 'Rate limit exceeded',
-        cooldownRemaining: remainingCooldown
-      },
-      { status: 429 }
-    );
-    
-    response.headers.set('Retry-After', remainingCooldown.toString());
-    return { allowed: false, response };
-  }
-  
-  // Check burst limit
-  const timeSinceLastRequest = now - entry.lastRequestTime;
-  if (timeSinceLastRequest < 1000) { // Within 1 second
-    entry.burstCount++;
-    if (entry.burstCount > (config.burstLimit || config.maxRequests)) {
-      // Trigger cooldown for burst violations
-      entry.cooldownUntil = now + (config.cooldownMs || 60 * 1000);
-      rateLimitStore.set(key, entry);
-      
-      const response = NextResponse.json(
-        { 
-          error: 'Too many rapid requests. Please slow down.',
-          cooldownRemaining: Math.ceil((config.cooldownMs || 60 * 1000) / 1000)
-        },
-        { status: 429 }
-      );
-      
-      response.headers.set('Retry-After', Math.ceil((config.cooldownMs || 60 * 1000) / 1000).toString());
-      return { allowed: false, response };
-    }
-  } else {
-    // Reset burst count if enough time has passed
-    entry.burstCount = 1;
-  }
-  
-  // Check if limit exceeded
-  if (entry.count >= config.maxRequests) {
-    // Trigger cooldown
-    entry.cooldownUntil = now + (config.cooldownMs || 60 * 1000);
-    rateLimitStore.set(key, entry);
-    
-    const response = NextResponse.json(
-      { 
-        error: config.message || 'Rate limit exceeded',
-        cooldownRemaining: Math.ceil((config.cooldownMs || 60 * 1000) / 1000)
-      },
-      { status: 429 }
-    );
-    
-    // Add rate limit headers
-    response.headers.set('X-RateLimit-Limit', config.maxRequests.toString());
-    response.headers.set('X-RateLimit-Remaining', '0');
-    response.headers.set('X-RateLimit-Reset', new Date(entry.resetTime).toISOString());
-    response.headers.set('Retry-After', Math.ceil((config.cooldownMs || 60 * 1000) / 1000).toString());
-    
-    return { allowed: false, response };
-  }
-  
-  // Increment counter and update timestamps
-  entry.count++;
-  entry.lastRequestTime = now;
-  rateLimitStore.set(key, entry);
-  
-  return { allowed: true };
-}
-
-export function getRateLimitHeaders(clientIP: string, type: string = 'default'): Record<string, string> {
-  const config = rateLimitConfigs[type] || rateLimitConfigs['default'];
-  const key = `${type}:${clientIP}`;
-  const entry = rateLimitStore.get(key);
-  
-  if (!entry) {
-    return {
-      'X-RateLimit-Limit': config.maxRequests.toString(),
-      'X-RateLimit-Remaining': config.maxRequests.toString(),
-      'X-RateLimit-Reset': new Date(Date.now() + config.windowMs).toISOString(),
-      'X-RateLimit-BurstLimit': (config.burstLimit || config.maxRequests).toString()
-    };
-  }
-  
-  return {
-    'X-RateLimit-Limit': config.maxRequests.toString(),
-    'X-RateLimit-Remaining': Math.max(0, config.maxRequests - entry.count).toString(),
-    'X-RateLimit-Reset': new Date(entry.resetTime).toISOString(),
-    'X-RateLimit-BurstLimit': (config.burstLimit || config.maxRequests).toString()
+interface RateLimitStore {
+  [key: string]: {
+    count: number;
+    resetTime: number;
   };
 }
 
-// Clean up old entries periodically
-setInterval(() => {
+class RateLimiter {
+  private store: RateLimitStore = {};
+  private config: RateLimitConfig;
+
+  constructor(config: RateLimitConfig) {
+    this.config = {
+      skipSuccessfulRequests: false,
+      skipFailedRequests: false,
+      keyGenerator: this.defaultKeyGenerator,
+      handler: this.defaultHandler,
+      ...config
+    };
+  }
+
+  private defaultKeyGenerator(req: NextRequest): string {
+    // Use IP address as default key
+    const ip = req.headers.get('x-forwarded-for') || 
+               req.headers.get('x-real-ip') || 
+               req.headers.get('cf-connecting-ip') ||
+               'unknown';
+    return `rate_limit:${ip}`;
+  }
+
+  private defaultHandler(req: NextRequest): NextResponse {
+    return NextResponse.json(
+      { error: 'Too many requests', message: 'Rate limit exceeded' },
+      { status: 429 }
+    );
+  }
+
+  private cleanup(): void {
+    const now = Date.now();
+    Object.keys(this.store).forEach(key => {
+      if (this.store[key].resetTime <= now) {
+        delete this.store[key];
+      }
+    });
+  }
+
+  check(req: NextRequest): { allowed: boolean; remaining: number; resetTime: number } {
+    this.cleanup();
+
+    const key = this.config.keyGenerator!(req);
+    const now = Date.now();
+    const windowStart = now - this.config.windowMs;
+
+    if (!this.store[key] || this.store[key].resetTime <= now) {
+      this.store[key] = {
+        count: 1,
+        resetTime: now + this.config.windowMs
+      };
+      return {
+        allowed: true,
+        remaining: this.config.maxRequests - 1,
+        resetTime: this.store[key].resetTime
+      };
+    }
+
+    if (this.store[key].count >= this.config.maxRequests) {
+      return {
+        allowed: false,
+        remaining: 0,
+        resetTime: this.store[key].resetTime
+      };
+    }
+
+    this.store[key].count++;
+    return {
+      allowed: true,
+      remaining: this.config.maxRequests - this.store[key].count,
+      resetTime: this.store[key].resetTime
+    };
+  }
+
+  handle(req: NextRequest): { allowed: boolean; response?: NextResponse } {
+    const result = this.check(req);
+
+    if (!result.allowed) {
+      if (this.config.onLimitReached) {
+        this.config.onLimitReached(req);
+      }
+      return {
+        allowed: false,
+        response: this.config.handler!(req)
+      };
+    }
+
+    return { allowed: true };
+  }
+}
+
+// Pre-configured rate limiters for different use cases
+export const apiRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 100,
+  keyGenerator: (req) => {
+    const ip = req.headers.get('x-forwarded-for') || 
+               req.headers.get('x-real-ip') || 
+               req.headers.get('cf-connecting-ip') ||
+               'unknown';
+    const userAgent = req.headers.get('user-agent') || '';
+    return `api:${ip}:${userAgent.slice(0, 50)}`;
+  }
+});
+
+export const authRateLimiter = new RateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 5,
+  keyGenerator: (req) => {
+    const ip = req.headers.get('x-forwarded-for') || 
+               req.headers.get('x-real-ip') || 
+               req.headers.get('cf-connecting-ip') ||
+               'unknown';
+    return `auth:${ip}`;
+  },
+  handler: (req) => {
+    return NextResponse.json(
+      { error: 'Too many authentication attempts', message: 'Please try again later' },
+      { status: 429 }
+    );
+  }
+});
+
+export const generateRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 10,
+  keyGenerator: (req) => {
+    const ip = req.headers.get('x-forwarded-for') || 
+               req.headers.get('x-real-ip') || 
+               req.headers.get('cf-connecting-ip') ||
+               'unknown';
+    return `generate:${ip}`;
+  },
+  handler: (req) => {
+    return NextResponse.json(
+      { error: 'Generation rate limit exceeded', message: 'Please wait before generating more thumbnails' },
+      { status: 429 }
+    );
+  }
+});
+
+export const uploadRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 5,
+  keyGenerator: (req) => {
+    const ip = req.headers.get('x-forwarded-for') || 
+               req.headers.get('x-real-ip') || 
+               req.headers.get('cf-connecting-ip') ||
+               'unknown';
+    return `upload:${ip}`;
+  },
+  handler: (req) => {
+    return NextResponse.json(
+      { error: 'Upload rate limit exceeded', message: 'Please wait before uploading more files' },
+      { status: 429 }
+    );
+  }
+});
+
+export const searchRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 50,
+  keyGenerator: (req) => {
+    const ip = req.headers.get('x-forwarded-for') || 
+               req.headers.get('x-real-ip') || 
+               req.headers.get('cf-connecting-ip') ||
+               'unknown';
+    return `search:${ip}`;
+  }
+});
+
+// Utility function for API routes
+export function rateLimit(req: NextRequest, type: 'api' | 'auth' | 'generate' | 'upload' | 'search' | 'cron' | 'webhook') {
+  let limiter: RateLimiter;
+
+  switch (type) {
+    case 'auth':
+      limiter = authRateLimiter;
+      break;
+    case 'generate':
+      limiter = generateRateLimiter;
+      break;
+    case 'upload':
+      limiter = uploadRateLimiter;
+      break;
+    case 'search':
+      limiter = searchRateLimiter;
+      break;
+    case 'cron':
+      // No rate limiting for cron jobs
+      return { allowed: true, response: undefined };
+    case 'webhook':
+      // No rate limiting for webhooks (they come from trusted sources)
+      return { allowed: true, response: undefined };
+    default:
+      limiter = apiRateLimiter;
+  }
+
+  return limiter.handle(req);
+}
+
+// Generate rate limit headers for responses
+export function getRateLimitHeaders(identifier: string, type: string): Record<string, string> {
   const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetTime && (!entry.cooldownUntil || now > entry.cooldownUntil)) {
-      rateLimitStore.delete(key);
+  const windowMs = 60 * 1000; // 1 minute default
+  const maxRequests = 100; // default max requests
+  
+  return {
+    'X-RateLimit-Limit': maxRequests.toString(),
+    'X-RateLimit-Remaining': '99', // Default remaining
+    'X-RateLimit-Reset': Math.floor((now + windowMs) / 1000).toString(),
+    'X-RateLimit-Type': type
+  };
+}
+
+// Enhanced rate limiting with user-based limits
+export class UserRateLimiter {
+  private store: Map<string, { count: number; resetTime: number }> = new Map();
+
+  constructor(
+    private windowMs: number = 60 * 1000,
+    private maxRequests: number = 100
+  ) {}
+
+  check(userId: string): { allowed: boolean; remaining: number; resetTime: number } {
+    const now = Date.now();
+    const key = `user:${userId}`;
+    const windowStart = now - this.windowMs;
+
+    const current = this.store.get(key);
+    if (!current || current.resetTime <= now) {
+      this.store.set(key, {
+        count: 1,
+        resetTime: now + this.windowMs
+      });
+      return {
+        allowed: true,
+        remaining: this.maxRequests - 1,
+        resetTime: now + this.windowMs
+      };
+    }
+
+    if (current.count >= this.maxRequests) {
+      return {
+        allowed: false,
+        remaining: 0,
+        resetTime: current.resetTime
+      };
+    }
+
+    current.count++;
+    this.store.set(key, current);
+    return {
+      allowed: true,
+      remaining: this.maxRequests - current.count,
+      resetTime: current.resetTime
+    };
+  }
+
+  // Clean up expired entries
+  cleanup(): void {
+    const now = Date.now();
+    for (const [key, value] of this.store.entries()) {
+      if (value.resetTime <= now) {
+        this.store.delete(key);
+      }
     }
   }
-}, 60 * 1000); // Clean up every minute
+}
 
-// Export configs for use in other files
-export { rateLimitConfigs }; 
+// User-specific rate limiters
+export const userGenerateLimiter = new UserRateLimiter(60 * 1000, 20); // 20 generations per minute
+export const userUploadLimiter = new UserRateLimiter(60 * 1000, 10); // 10 uploads per minute
+export const userSearchLimiter = new UserRateLimiter(60 * 1000, 100); // 100 searches per minute
+
+// Utility for user-based rate limiting
+export function userRateLimit(userId: string, type: 'generate' | 'upload' | 'search') {
+  let limiter: UserRateLimiter;
+
+  switch (type) {
+    case 'generate':
+      limiter = userGenerateLimiter;
+      break;
+    case 'upload':
+      limiter = userUploadLimiter;
+      break;
+    case 'search':
+      limiter = userSearchLimiter;
+      break;
+    default:
+      return { allowed: true, remaining: 999, resetTime: Date.now() };
+  }
+
+  return limiter.check(userId);
+} 

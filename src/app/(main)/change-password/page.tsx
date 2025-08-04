@@ -34,7 +34,6 @@ export default function ChangePasswordPage() {
         setUser(user);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching user:", error);
         toast.error("Failed to load user data");
         setLoading(false);
       }
@@ -114,7 +113,6 @@ export default function ChangePasswordPage() {
       toast.success("Password changed successfully");
       router.push("/profile");
     } catch (error) {
-      console.error("Error changing password:", error);
       toast.error("Failed to change password");
     } finally {
       setChanging(false);

@@ -12,9 +12,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`https://test.dodopayments.com/subscriptions/${subscriptionId}`, {
+    const response = await fetch(`https://${process.env.NODE_ENV === 'development' ? 'test' : 'live'}.dodopayments.com/subscriptions/${subscriptionId}`, {
       headers: {
-        'Authorization': 'Bearer 3QTS0SADKkPuZg1e.O2y69hs3glWtuwAnPksHxiIRkDNUiWM95KsUp_bhNtzkjftN'
+        'Authorization': 'Bearer ${process.env.DODO_API_KEY}'
       }
     });
 

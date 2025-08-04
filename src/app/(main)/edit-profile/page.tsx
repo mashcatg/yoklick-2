@@ -33,7 +33,6 @@ export default function EditProfilePage() {
         }
         setUser(user);
         
-        // Get display name using utility function
         const displayName = getUserDisplayName({
           id: user.id,
           name: user.user_metadata?.full_name || "",
@@ -45,7 +44,6 @@ export default function EditProfilePage() {
         setAvatarUrl(user.user_metadata?.avatar_url || "");
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching user:", error);
         toast.error("Failed to load profile");
         setLoading(false);
       }
@@ -84,8 +82,6 @@ export default function EditProfilePage() {
       formData.append('file', file);
       formData.append('userId', user.id);
 
-      console.log('Uploading via API route...');
-      
       const response = await fetch('/api/upload-profile-image', {
         method: 'POST',
         body: formData
@@ -96,12 +92,9 @@ export default function EditProfilePage() {
       if (!response.ok) {
         throw new Error(result.error || 'Upload failed');
       }
-
-      console.log('Upload successful:', result);
       setAvatarUrl(result.publicUrl);
-      toast.success("Image uploaded successfully");
+      toast.success("Image uploaded. Please save changes to update your profile.");
     } catch (error) {
-      console.error("Error uploading image:", error);
       toast.error(error instanceof Error ? error.message : "Failed to upload image");
       setPreviewUrl("");
     } finally {
@@ -130,7 +123,6 @@ export default function EditProfilePage() {
         throw authError;
       }
 
-      // Update users_meta table in database
       const { error: metaError } = await supabase
         .from("users_meta")
         .update({
@@ -141,15 +133,11 @@ export default function EditProfilePage() {
         .eq("id", user.id);
 
       if (metaError) {
-        console.error("Error updating users_meta:", metaError);
-        // Don't throw error here, as the auth update was successful
-        // Just log it for debugging
       }
 
       toast.success("Profile updated successfully");
       router.push("/profile");
     } catch (error) {
-      console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
     } finally {
       setSaving(false);

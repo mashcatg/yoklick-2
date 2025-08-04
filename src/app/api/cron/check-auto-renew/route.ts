@@ -29,20 +29,19 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    console.log("🔄 Starting auto-renew health check...");
 
     // For now, skip the attention check since the function doesn't exist
     // TODO: Implement a simpler subscription health check
-    console.log("⚠️ Subscription attention check skipped - function not deployed");
+    // console.log("⚠️ Subscription attention check skipped - function not deployed");
 
     let notificationsSent = 0;
     let errors = 0;
 
     // For now, skip the upcoming renewals check since the function might not be deployed
     // TODO: Implement a simpler upcoming renewals check
-    console.log("⚠️ Upcoming renewals check skipped - function not deployed");
+    // console.log("⚠️ Upcoming renewals check skipped - function not deployed");
 
-    console.log(`✅ Auto-renew health check completed: ${notificationsSent} notifications, ${errors} errors`);
+    // console.log(`✅ Auto-renew health check completed: ${notificationsSent} notifications, ${errors} errors`);
 
     return NextResponse.json({ 
       success: true, 
@@ -53,7 +52,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Auto-renew health check error:', error);
+    // console.error('Auto-renew health check error:', error);
     return NextResponse.json({ 
       success: false, 
       error: 'Internal server error' 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LogOut, LogIn, Zap, Edit, Lock, User, CreditCard, Heart } from "lucide-react";
 import { supabase } from "@/app/lib/supabaseClient";
+import { logoutUser } from "@/app/lib/userCache";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,8 +68,15 @@ export default function Topbar() {
   }, []);
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    location.reload();
+    try {
+      await logoutUser();
+      location.reload();
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Fallback to direct signOut if the safe method fails
+      await supabase.auth.signOut();
+      location.reload();
+    }
   };
 
   const handleImageError = () => {

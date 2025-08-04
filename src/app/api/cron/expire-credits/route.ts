@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase.rpc('expire_credits');
 
     if (error) {
-      console.error('Error expiring credits:', error);
       return NextResponse.json({ 
         success: false, 
         error: error.message 
@@ -45,7 +44,6 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Credit expiry cron job error:', error);
     return NextResponse.json({ 
       success: false, 
       error: 'Internal server error' 

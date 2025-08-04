@@ -23,6 +23,7 @@ export default function AuthForm({ mode = "signin" }: { mode?: Mode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +31,13 @@ export default function AuthForm({ mode = "signin" }: { mode?: Mode }) {
     setLoading(true);
     setError(null);
     setSuccess(null);
+
+    // Validate terms agreement for signup
+    if (mode === "signup" && !agreeToTerms) {
+      setError("You must agree to our Terms & Conditions and Privacy Policy to continue.");
+      setLoading(false);
+      return;
+    }
 
     if (mode === "signin") {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -167,6 +175,29 @@ export default function AuthForm({ mode = "signin" }: { mode?: Mode }) {
                 >
                   Forgot password?
                 </a>
+              </div>
+            )}
+
+            {mode === "signup" && (
+              <div className="animate-element animate-delay-500 flex items-start gap-3 text-sm">
+                <input 
+                  type="checkbox" 
+                  id="agreeToTerms"
+                  checked={agreeToTerms}
+                  onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  className="mt-1 custom-checkbox" 
+                  required
+                />
+                <label htmlFor="agreeToTerms" className="text-foreground/90 leading-relaxed">
+                  I agree to the{" "}
+                  <a href="/terms" target="_blank" className="text-primary hover:underline">
+                    Terms & Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy" target="_blank" className="text-primary hover:underline">
+                    Privacy Policy
+                  </a>
+                </label>
               </div>
             )}
 

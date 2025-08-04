@@ -1,0 +1,73 @@
+{
+  "name": "yoklick - AI Thumbnail Generator",
+  "short_name": "yoklick",
+  "description": "Create viral YouTube thumbnails with AI. Transform simple titles into stunning thumbnails in seconds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2e7dff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["creativity", "productivity", "utilities", "design", "ai", "youtube", "thumbnail", "generator", "thumbnail generator", "thumbnail design", "thumbnail generator", "thumbnail design", "thumbnail generator", "thumbnail design", "best thumbnail", "increase youtube views", "increase youtube subscribers", "increase youtube likes", "increase youtube comments", "increase youtube shares", "increase youtube views", "increase youtube subscribers", "increase youtube likes", "increase youtube comments", "increase youtube shares", "increase views", "increase subscribers", "increase likes", "increase comments", "increase shares", "youtube thumbnail", "youtube thumbnail generator", "youtube thumbnail design", "youtube thumbnail generator", "youtube thumbnail design", "youtube thumbnail generator", "youtube thumbnail design", "best youtube thumbnail", "increase youtube views", "increase youtube subscribers", "increase youtube likes", "increase youtube comments", "increase youtube shares", "increase youtube views", "increase youtube subscribers", "increase youtube likes", "increase youtube comments", "increase youtube shares", "increase views", "increase subscribers", "increase likes", "increase comments", "increase shares"],
+  "icons": [
+    {
+      "src": "/yoklick-favicon-2.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/yoklick-favicon-2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/yoklick.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Generate Thumbnail",
+      "short_name": "Generate",
+      "description": "Create a new thumbnail",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/yoklick-favicon-2.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "My Generations",
+      "short_name": "Generations",
+      "description": "View your generated thumbnails",
+      "url": "/generations",
+      "icons": [
+        {
+          "src": "/yoklick-favicon-2.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Explore",
+      "short_name": "Explore",
+      "description": "Discover public thumbnails",
+      "url": "/explore",
+      "icons": [
+        {
+          "src": "/yoklick-favicon-2.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+} 

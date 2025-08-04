@@ -16,6 +16,7 @@ import { useCredits } from "@/app/context/CreditsContext";
 import { useGeneration } from "@/app/context/GenerationContext";
 import PromptSection from "@/app/components/PromptSection";
 import ThumbnailsGrid from "@/app/components/ThumbnailsGrid";
+import { HomepageSkeleton } from "@/app/components/HomepageSkeleton";
 import { bulkDownloadImages } from "@/app/lib/bulkDownload";
 import { getUserWithFallback } from "@/app/lib/userCache";
 
@@ -113,7 +114,15 @@ export default function HomePage() {
   const [localGenerating, setLocalGenerating] = useState(false); // Local generation state
   const [forceSkeleton, setForceSkeleton] = useState(false); // Force skeleton display
   const { refreshCredits } = useCredits();
-  const { isGenerating, stopGeneration, startGeneration } = useGeneration();
+  const { 
+    isGenerating, 
+    stopGeneration, 
+    startGeneration,
+    showHomepageSkeleton,
+    setShowHomepageSkeleton,
+    forceHomepageSkeleton,
+    clearHomepageSkeleton
+  } = useGeneration();
   // PromptBox2 state
   const [prompt, setPrompt] = useState("");
   const [privacy, setPrivacy] = useState(true); // true = public
@@ -122,7 +131,7 @@ export default function HomePage() {
 
   // Debug isGenerating state changes
   useEffect(() => {
-    console.log('🔄 isGenerating state changed:', isGenerating);
+    // Removed debug logging for production
   }, [isGenerating]);
 
   const fetchMyThumbs = async (userId: string) => {
@@ -172,8 +181,7 @@ export default function HomePage() {
         
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching initial data:", error);
-        toast.error("Failed to load some content");
+        // Silent error handling for production
         setLoading(false);
       }
     };
@@ -183,30 +191,44 @@ export default function HomePage() {
 
   // Separate effect for search functionality
   useEffect(() => {
-    if (!search.trim()) return; // Don't fetch if search is empty
-    
     const fetchSearchResults = async () => {
       setLoading(true);
       
       try {
-        // Fetch search results
-        const { data: searchResults } = await supabase
-          .from("thumbnails")
-          .select("*, user:users_meta(id, name, avatar_url)")
-          .eq("is_public", true)
-          .eq("is_featured", true)
-          .eq("is_hidden", false)
-          .ilike("prompt", `%${search.trim()}%`)
-          .limit(2000);
-        
-        if (searchResults) {
-          // Apply extreme perfect shuffle to search results
-          const shuffledData = extremePerfectShuffle(searchResults).slice(0, 9);
-          setTrendingThumbs(shuffledData);
+        if (!search.trim()) {
+          // If search is empty, fetch original trending thumbnails
+          const { data: pub } = await supabase
+            .from("thumbnails")
+            .select("*, user:users_meta(id, name, avatar_url)")
+            .eq("is_public", true)
+            .eq("is_featured", true)
+            .eq("is_hidden", false)
+            .limit(1000);
+          
+          if (pub) {
+            // Apply extreme perfect shuffle to ensure same generations are separated
+            const shuffledData = extremePerfectShuffle(pub).slice(0, 9);
+            setTrendingThumbs(shuffledData);
+          }
+        } else {
+          // Fetch search results with improved query
+          const { data: searchResults } = await supabase
+            .from("thumbnails")
+            .select("*, user:users_meta(id, name, avatar_url)")
+            .eq("is_public", true)
+            .eq("is_featured", true)
+            .eq("is_hidden", false)
+            .or(`prompt.ilike.%${search.trim()}%,user.name.ilike.%${search.trim()}%`)
+            .limit(2000);
+          
+          if (searchResults) {
+            // Apply extreme perfect shuffle to search results
+            const shuffledData = extremePerfectShuffle(searchResults).slice(0, 9);
+            setTrendingThumbs(shuffledData);
+          }
         }
       } catch (error) {
-        console.error("Error fetching search results:", error);
-        toast.error("Failed to load search results");
+        // Silent error handling for production
       } finally {
         setLoading(false);
       }
@@ -226,8 +248,6 @@ export default function HomePage() {
 
   // For PromptBox2 (generate)
   const handleGenerate = async () => {
-    console.log('🚀 Generate clicked, starting generation...');
-    
     // IMMEDIATELY set skeleton state - this triggers instantly
     setForceSkeleton(true);
     setLocalGenerating(true);
@@ -235,9 +255,7 @@ export default function HomePage() {
     setMyThumbsLoading(true);
     
     // Start global generation state
-    startGeneration(prompt);
-    
-    console.log('✅ Generate: Force skeleton set, myThumbs = [null, null, null, null]');
+    startGeneration();
     
     try {
       const res = await fetch("/api/generate", {
@@ -276,8 +294,6 @@ export default function HomePage() {
 
   // For ThumbnailsGrid (regenerate)
   const handleRegenerate = async (prompt: string, is_public: boolean, text_position: string) => {
-    console.log('🔄 Homepage regenerate called:', { prompt, is_public, text_position });
-    
     // IMMEDIATELY set skeleton state - this triggers instantly
     setForceSkeleton(true);
     setLocalGenerating(true);
@@ -285,9 +301,7 @@ export default function HomePage() {
     setMyThumbsLoading(true);
     
     // Start global generation state
-    startGeneration(prompt);
-    
-    console.log('✅ Regenerate: Force skeleton set, myThumbs = [null, null, null, null]');
+    startGeneration();
     
     try {
       const res = await fetch("/api/generate", {
@@ -339,7 +353,7 @@ export default function HomePage() {
         toast.error("Failed to download any thumbnails. Please try downloading individually.");
       }
     } catch (error) {
-      console.error('Bulk download error:', error);
+      // Silent error handling for production
       toast.error("Failed to download thumbnails. Please try again.");
     } finally {
       setIsBulkDownloading(false);
@@ -438,40 +452,12 @@ export default function HomePage() {
             )}
           </h2>
           {(() => {
-            const shouldShowSkeletons = forceSkeleton || localGenerating || isGenerating || myThumbsLoading || myThumbs.some(t => t === null);
-            console.log('🎭 Skeleton Debug:', {
-              forceSkeleton,
-              localGenerating,
-              isGenerating,
-              myThumbsLoading,
-              hasNullThumbs: myThumbs.some(t => t === null),
-              shouldShowSkeletons,
-              myThumbsLength: myThumbs.length,
-              myThumbs: myThumbs
-            });
+            const shouldShowSkeletons = showHomepageSkeleton || forceSkeleton || localGenerating || isGenerating || myThumbsLoading || myThumbs.some(t => t === null);
             return shouldShowSkeletons;
           })() ? (
-            <ThumbnailsGrid
-              thumbnails={[null, null, null, null]}
-              loading={true}
-              onRegenerate={handleRegenerate}
-              gridClassName="grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-4"
-              selectedIds={selectedIds}
-              setSelectedIds={setSelectedIds}
-              quantity={4}
-              isRegenerating={false}
-            />
+            <HomepageSkeleton />
           ) : myThumbsLoading || myThumbs.some(t => t === null) ? (
-            <ThumbnailsGrid
-              thumbnails={[null, null, null, null]}
-              loading={true}
-              onRegenerate={handleRegenerate}
-              gridClassName="grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-4"
-              selectedIds={selectedIds}
-              setSelectedIds={setSelectedIds}
-              quantity={4}
-              isRegenerating={false}
-            />
+            <HomepageSkeleton />
           ) : myThumbs.length === 0 ? (
             <NoThumbnailsFound />
           ) : (

@@ -22,30 +22,23 @@ export default function CheckoutPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { refreshCredits } = useCredits();
   const { refreshPaymentData } = usePayment();
-  const [creditsAllocated, setCreditsAllocated] = useState(false); // Prevent multiple allocations
-  const [dynamicPlanType, setDynamicPlanType] = useState<string | null>(null); // Dynamically fetched plan
+  const [creditsAllocated, setCreditsAllocated] = useState(false);
+  const [dynamicPlanType, setDynamicPlanType] = useState<string | null>(null);
 
-  // Check if credits were already allocated for this subscription
   useEffect(() => {
     const subscriptionIds = searchParams.getAll('subscription_id');
-    
-    // Check if any of the subscription IDs have already been processed
     let alreadyProcessed = false;
     for (const subId of subscriptionIds) {
       const allocatedKey = `credits_allocated_${subId}`;
       const alreadyAllocated = localStorage.getItem(allocatedKey);
       if (alreadyAllocated === 'true') {
         alreadyProcessed = true;
-        console.log('✅ Credits already allocated for subscription:', subId);
         break;
       }
     }
-    
     if (alreadyProcessed) {
       setCreditsAllocated(true);
     }
-
-    // Cleanup old localStorage entries (older than 1 hour)
     const cleanupOldEntries = () => {
       const oneHourAgo = Date.now() - 60 * 60 * 1000;
       Object.keys(localStorage).forEach(key => {
@@ -58,24 +51,17 @@ export default function CheckoutPage() {
         }
       });
     };
-
     cleanupOldEntries();
   }, [searchParams]);
 
-  // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      // Cleanup function runs when component unmounts
-    };
+    return () => {};
   }, []);
 
-  // Enhanced authentication check with hash fragment handling
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        
         const { user, success } = await handleAuthentication();
-        
         if (success && user) {
           setIsAuthenticated(true);
           setCurrentUser(user);
@@ -88,27 +74,21 @@ export default function CheckoutPage() {
         setCurrentUser(null);
       }
     };
-
     checkAuth();
   }, []);
 
-  // Listen for auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        
         if (session?.user) {
           setIsAuthenticated(true);
           setCurrentUser(session.user);
           localStorage.setItem('yoklick_user_id', session.user.id);
           localStorage.setItem('yoklick_user_email', session.user.email || '');
-          
-          // Fetch user's plan from database when authenticated
           if (session.user.id) {
             const userPlan = await fetchUserPlanFromDatabase();
             if (userPlan) {
               setDynamicPlanType(userPlan);
-              console.log('✅ Set dynamic plan type:', userPlan);
             }
           }
         } else if (event === 'SIGNED_OUT') {
@@ -120,46 +100,33 @@ export default function CheckoutPage() {
         }
       }
     );
-
     return () => subscription.unsubscribe();
   }, []);
 
-  // Main checkout processing
   useEffect(() => {
     const handleCheckout = async () => {
       try {
-        // Wait for authentication check to complete
         if (isAuthenticated === null) {
-          console.log('⏳ Waiting for authentication check...');
           return;
         }
-
         if (isAuthenticated === false) {
           setError('Please sign in to complete your purchase.');
           setLoading(false);
           return;
         }
-
         if (!currentUser) {
           setError('Authentication error. Please sign in again.');
           setLoading(false);
           return;
         }
-
-        // Get payment parameters
         const subscriptionIds = searchParams.getAll('subscription_id');
         const paymentId = searchParams.get('payment_id');
         const status = searchParams.get('status');
-        
-        // Find the ACTIVE subscription ID (not pending)
         let activeSubscriptionId = null;
-        
-        // First, try to find an active subscription from the URL parameters
         for (const subId of subscriptionIds) {
           try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.access_token) continue;
-            
             const syncResponse = await fetch('/api/payments/sync-subscription', {
               method: 'POST',
               headers: { 
@@ -168,72 +135,53 @@ export default function CheckoutPage() {
               },
               body: JSON.stringify({ subscriptionId: subId })
             });
-            
             const syncData = await syncResponse.json();
             if (syncData.success && syncData.subscription?.status === 'active') {
               activeSubscriptionId = subId;
-              console.log('✅ Found active subscription:', subId);
               break;
             }
-          } catch (error) {
-            console.log('⚠️ Error checking subscription:', subId, error);
-          }
+          } catch (error) {}
         }
-        
-        // If no active subscription found, use the last one (fallback)
         if (!activeSubscriptionId && subscriptionIds.length > 0) {
           activeSubscriptionId = subscriptionIds[subscriptionIds.length - 1];
-          console.log('⚠️ No active subscription found, using last one:', activeSubscriptionId);
         }
-
         if (!activeSubscriptionId) {
           setError('No valid subscription ID found');
           setLoading(false);
           return;
         }
-
-        // Prevent multiple allocations for the same subscriptionId in this session
         if (creditsAllocated) {
           setLoading(false);
           return;
         }
-
-        // Process payment status
         if (status === 'success' || status === 'active' || paymentId) {
           setPaymentStatus('success');
-          // Only allocate credits for active subscriptions
           await updateUserSubscription(activeSubscriptionId);
         } else if (status === 'cancelled') {
           setPaymentStatus('cancelled');
         } else if (status === 'failed') {
           setPaymentStatus('failed');
         } else {
-          // Check subscription status to determine if it's active
           await checkSubscriptionStatus(activeSubscriptionId);
         }
-
         setLoading(false);
       } catch (error) {
         setError('Something went wrong during checkout');
         setLoading(false);
       }
     };
-
     handleCheckout();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isAuthenticated, currentUser, creditsAllocated]);
 
   const checkSubscriptionStatus = async (subscriptionId: string) => {
     try {
-      // Get current session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
         setError('Authentication required');
         setLoading(false);
         return;
       }
-
-      // First, sync subscription data from Dodo Payments
       const syncResponse = await fetch('/api/payments/sync-subscription', {
         method: 'POST',
         headers: { 
@@ -242,15 +190,10 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({ subscriptionId })
       });
-      
       const syncData = await syncResponse.json();
-      console.log('Sync subscription response:', syncData);
-      
       if (syncData.success) {
-        // Check if subscription is active
         if (syncData.subscription.status === 'active') {
           setPaymentStatus('success');
-          // Only allocate credits for active subscriptions
           await updateUserSubscription(subscriptionId);
         } else if (syncData.subscription.status === 'pending') {
           setPaymentStatus('pending');
@@ -261,7 +204,6 @@ export default function CheckoutPage() {
           setError('Payment verification failed. Please contact support if you believe this is an error.');
         }
       } else {
-        // Fallback to old complete-payment API
         const response = await fetch('/api/payments/complete-payment', {
           method: 'POST',
           headers: { 
@@ -271,9 +213,6 @@ export default function CheckoutPage() {
           body: JSON.stringify({ subscriptionId })
         });
         const data = await response.json();
-        
-        console.log('Complete payment response:', data);
-        
         if (data.success) {
           if (data.status === 'success') {
             setPaymentStatus('success');
@@ -291,7 +230,6 @@ export default function CheckoutPage() {
         }
       }
     } catch (error) {
-      console.error('Error checking subscription status:', error);
       setPaymentStatus('failed');
       setError('Failed to verify payment status');
     }
@@ -302,17 +240,11 @@ export default function CheckoutPage() {
       if (!currentUser) {
         return;
       }
-      // Only allocate credits if not already done in this session
       if (creditsAllocated) return;
-      
-      // First, verify subscription status is active before allocating credits
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        console.error('No valid session found');
         return;
       }
-      
-      // Check subscription status from Dodo Payments
       const statusResponse = await fetch('/api/payments/sync-subscription', {
         method: 'POST',
         headers: {
@@ -321,22 +253,15 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({ subscriptionId })
       });
-      
       const statusData = await statusResponse.json();
-      console.log('💳 Subscription status check:', statusData);
-      
-      // Only proceed if subscription is active
       if (!statusData.success || statusData.subscription?.status !== 'active') {
-        console.log('💳 Subscription not active, skipping credit allocation');
         if (statusData.subscription?.status === 'pending') {
           toast.error('Payment is still processing. Please wait a moment and refresh the page.');
         }
         return;
       }
-      
-      // Ensure user exists in users_meta table
       try {
-        const setupResponse = await fetch('/api/payments/setup-user', {
+        await fetch('/api/payments/setup-user', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -344,35 +269,19 @@ export default function CheckoutPage() {
           },
           body: JSON.stringify({ userId: currentUser.id })
         });
-        
-        if (setupResponse.ok) {
-          console.log('✅ User setup completed');
-        } else {
-          console.error('❌ User setup failed');
-        }
-      } catch (error) {
-        console.error('❌ Error setting up user:', error);
-      }
-      
-      // Get subscription data from database if not available
+      } catch (error) {}
       let planType = subscriptionData?.metadata?.plan_type;
-      
       if (!planType) {
-        // Use the new subscription lookup API
         try {
           const lookupResponse = await fetch(`/api/payments/subscription-lookup?subscription_id=${subscriptionId}`, {
             headers: {
               'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
             }
           });
-          
           if (lookupResponse.ok) {
             const lookupData = await lookupResponse.json();
-            
             if (lookupData.success && lookupData.subscription) {
               planType = lookupData.subscription.plan_type || lookupData.subscription.metadata?.plan_type;
-              
-              // If subscription needs sync, create it in database
               if (lookupData.needsSync && currentUser) {
                 await supabase
                   .from("subscriptions")
@@ -393,25 +302,18 @@ export default function CheckoutPage() {
               }
             }
           }
-        } catch (error) {
-          console.error("Error looking up subscription:", error);
-        }
-        
-        // Fallback to direct database lookup
+        } catch (error) {}
         if (!planType) {
           const { data: dbSubscription, error: dbError } = await supabase
             .from('subscriptions')
             .select('plan_type, metadata')
             .eq('subscription_id', subscriptionId)
             .limit(1);
-          
           if (!dbError && dbSubscription && dbSubscription.length > 0) {
             const subscription = dbSubscription[0];
             planType = subscription.plan_type || subscription.metadata?.plan_type;
           }
         }
-        
-        // Final fallback to subscription status API
         if (!planType) {
           try {
             const statusResponse = await fetch('/api/payments/subscription-status', {
@@ -419,73 +321,48 @@ export default function CheckoutPage() {
                 'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
               }
             });
-            
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
-              
               if (statusData.subscription?.metadata?.plan_type) {
                 planType = statusData.subscription.metadata.plan_type;
               }
             }
-          } catch (apiError) {
-            console.error('❌ Error in direct Dodo API call:', apiError);
-          }
-          
-          // Fallback to checking user metadata
+          } catch (apiError) {}
           if (!planType) {
             const { data: { user } } = await supabase.auth.getUser();
             planType = user?.user_metadata?.plan_type;
           }
         }
       }
-      
-      // If still no plan type, try to determine from subscription ID pattern
       if (!planType) {
-        
-        // Try to get subscription details from Dodo Payments API
         try {
           const statusResponse = await fetch('/api/payments/subscription-status', {
             headers: {
               'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
             }
           });
-          
           if (statusResponse.ok) {
             const statusData = await statusResponse.json();
-            
             if (statusData.subscription?.metadata?.plan_type) {
               planType = statusData.subscription.metadata.plan_type;
             }
           }
-        } catch (apiError) {
-          console.error('❌ Error fetching subscription status:', apiError);
-        }
+        } catch (apiError) {}
       }
-      
-      // Final fallback: try to determine plan type from URL parameters or localStorage
       if (!planType) {
-        
-        // Check if we can get plan type from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const planFromUrl = urlParams.get('plan');
-        
         if (planFromUrl) {
           planType = planFromUrl;
         } else {
-          // Check localStorage for any stored plan information
           const storedPlan = localStorage.getItem('selected_plan');
           if (storedPlan) {
             planType = storedPlan;
           }
         }
       }
-      
-      
-      // Debug subscription if plan type is still undefined
       if (!planType) {
         await debugSubscription(subscriptionId);
-        
-        // After debug, try to get plan type from debug result
         const debugResponse = await fetch('/api/payments/debug-subscription', {
           method: 'POST',
           headers: {
@@ -493,21 +370,14 @@ export default function CheckoutPage() {
           },
           body: JSON.stringify({ subscriptionId })
         });
-        
         const debugResult = await debugResponse.json();
         if (debugResult.success && debugResult.debug.planType.fromDodo) {
           planType = debugResult.debug.planType.fromDodo;
         }
       }
-
-      // Allocate credits (this will handle pending subscriptions)
       try {
-        // Calculate credits based on plan type
         let creditsToAdd = 0;
-        
-        // Normalize plan type (handle cases where it might be "monthly" or "yearly")
         const normalizedPlanType = planType?.toLowerCase();
-        
         if (normalizedPlanType === "starter") {
           creditsToAdd = 40;
         } else if (normalizedPlanType === "creator") {
@@ -515,14 +385,8 @@ export default function CheckoutPage() {
         } else if (normalizedPlanType === "pro") {
           creditsToAdd = 300;
         } else if (normalizedPlanType === "free") {
-          // Free users don't get credits - this is expected
-          console.log('💳 Free user - no credits to allocate');
           return;
         } else if (normalizedPlanType === "monthly" || normalizedPlanType === "yearly") {
-          // If plan type is billing cycle instead of plan name, try to extract from metadata
-          console.log('💳 Plan type is billing cycle, trying to extract from metadata');
-          
-          // Try to determine plan type from subscription metadata
           if (subscriptionData?.metadata?.plan_type) {
             const metadataPlanType = subscriptionData.metadata.plan_type.toLowerCase();
             if (metadataPlanType === "starter") {
@@ -534,51 +398,39 @@ export default function CheckoutPage() {
             }
           }
         } else if (normalizedPlanType === "unknown") {
-          // Try to get plan type from product ID
           const productId = subscriptionData?.metadata?.product_id;
-          console.log('💳 Plan type is unknown, trying product ID:', productId);
-          
           if (productId) {
             if (productId.includes("starter")) {
               creditsToAdd = 40;
-              console.log('💳 Determined starter plan from product ID');
             } else if (productId.includes("creator")) {
               creditsToAdd = 100;
-              console.log('💳 Determined creator plan from product ID');
             } else if (productId.includes("pro")) {
               creditsToAdd = 300;
-              console.log('💳 Determined pro plan from product ID');
             }
           }
         }
-
-        console.log('💳 Calculating credits for plan:', { planType, creditsToAdd });
-
         if (creditsToAdd === 0) {
-          // Show a more helpful error message with debugging info
-          console.log('💳 Plan type debug:', { 
-            planType, 
-            subscriptionId,
-            subscriptionData: subscriptionData?.metadata,
-            productId: subscriptionData?.metadata?.product_id
-          });
-          
-          // Final fallback: try to determine plan type from product ID
-          const productIdToPlanMap: { [key: string]: string } = {
-            'pdt_PoCX9Im2AUmxotnYx9ydm': 'starter', // Starter Monthly
-            'pdt_RJ7OspzeWRD3XV0bqQJSn': 'starter', // Starter Yearly
-            'pdt_nzFFbBbSBVopc9gvAwGic': 'creator', // Creator Monthly
-            'pdt_0MtQNcWe0trsg2IWtMLtx': 'creator', // Creator Yearly
-            'pdt_DNbzGIiBdpqiKlrWLOj6q': 'pro',      // Pro Monthly
-            'pdt_xchUmeCCUGlTCXmg7IkAP': 'pro'       // Pro Yearly
-          };
-          
+          const productIdToPlanMap: { [key: string]: string } =
+            process.env.NODE_ENV === 'development'
+              ? {
+                  'pdt_PoCX9Im2AUmxotnYx9ydm': 'starter',
+                  'pdt_RJ7OspzeWRD3XV0bqQJSn': 'starter',
+                  'pdt_nzFFbBbSBVopc9gvAwGic': 'creator',
+                  'pdt_0MtQNcWe0trsg2IWtMLtx': 'creator',
+                  'pdt_DNbzGIiBdpqiKlrWLOj6q': 'pro',
+                  'pdt_xchUmeCCUGlTCXmg7IkAP': 'pro',
+                }
+              : {
+                  'pdt_aCeAOINH8bdnRRB6ntc3k': 'starter',
+                  'pdt_N2AKdLOPAKRkx3fpcd0nY': 'starter',
+                  'pdt_32QMss9DmmjfMVfYHpXCT': 'creator',
+                  'pdt_tvu9CXx72UJF1T3BQHSKg': 'creator',
+                  'pdt_h1pC9mPKvWleL3BH8hDBU': 'pro',
+                  'pdt_aO29vTbobbKXOw22R6IiQ': 'pro',
+                };
           const productId = subscriptionData?.metadata?.product_id;
           if (productId && productIdToPlanMap[productId]) {
             planType = productIdToPlanMap[productId];
-            console.log('💳 Determined plan type from product ID:', planType);
-            
-            // Recalculate credits
             if (planType === "starter") {
               creditsToAdd = 40;
             } else if (planType === "creator") {
@@ -587,42 +439,28 @@ export default function CheckoutPage() {
               creditsToAdd = 300;
             }
           } else if (productId) {
-            // Handle the specific product ID from the error
-            if (productId === 'pdt_PoCX9Im2AUmxotnYx9ydm') {
+            if (productId === 'pdt_PoCX9Im2AUmxotnYx9ydm' || productId === 'pdt_aCeAOINH8bdnRRB6ntc3k') {
               planType = 'starter';
               creditsToAdd = 40;
-              console.log('💳 Determined starter plan from specific product ID');
             }
           }
         }
-
-        console.log('💳 Final credit allocation:', { planType, creditsToAdd, subscriptionId });
-
-        // Don't proceed if plan type is still unknown or credits are 0
         if (creditsToAdd === 0 || planType === 'unknown') {
           const errorMessage = planType === 'unknown'
             ? `Subscription ${subscriptionId} has unknown plan type. Please wait for payment to complete or contact support.`
             : `Could not determine plan type for subscription ${subscriptionId}. Please contact support.`;
-          
-          console.error('💳 Credit allocation failed:', errorMessage);
           toast.error(errorMessage);
           return;
         }
-
         const allocationResult = await allocateCredits(subscriptionId, planType, creditsToAdd);
         if (allocationResult && allocationResult.success && !creditsAllocated) {
           setCreditsAllocated(true);
-          // Mark as allocated in localStorage
           const allocatedKey = `credits_allocated_${subscriptionId}`;
           localStorage.setItem(allocatedKey, 'true');
           localStorage.setItem(`${allocatedKey}_timestamp`, Date.now().toString());
-          
-          // Immediately update credits context for real-time UI updates
           if (allocationResult.credits !== undefined) {
-            // Update the credits context to reflect the new balance
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-              // Trigger a refresh of the credits context
               window.dispatchEvent(new CustomEvent('credits-updated', {
                 detail: { 
                   userId: user.id,
@@ -632,38 +470,29 @@ export default function CheckoutPage() {
               }));
             }
           }
-          
-          // Show success toast only once per session
           const toastKey = `success_toast_${subscriptionId}`;
           if (!localStorage.getItem(toastKey)) {
             toast.success(`Payment successful! 🎉 Welcome to Yoklick! Your subscription is now active.`);
             localStorage.setItem(toastKey, 'true');
-            // Clean up after 5 minutes
             setTimeout(() => localStorage.removeItem(toastKey), 5 * 60 * 1000);
           }
         } else if (allocationResult && allocationResult.alreadyAllocated) {
           setCreditsAllocated(true);
-          // Mark as allocated in localStorage
           const allocatedKey = `credits_allocated_${subscriptionId}`;
           localStorage.setItem(allocatedKey, 'true');
           localStorage.setItem(`${allocatedKey}_timestamp`, Date.now().toString());
-          
-          // Show different message for already allocated
           const toastKey = `already_allocated_toast_${subscriptionId}`;
           if (!localStorage.getItem(toastKey)) {
             toast.info(`Payment successful! Your credits were already allocated.`);
             localStorage.setItem(toastKey, 'true');
-            // Clean up after 5 minutes
             setTimeout(() => localStorage.removeItem(toastKey), 5 * 60 * 1000);
           }
         }
       } catch (creditError) {
         if (creditError instanceof Error && creditError.message.includes('429')) {
           await new Promise(resolve => setTimeout(resolve, 3000));
-          // Recalculate credits for retry
           let creditsToAdd = 0;
           const normalizedPlanType = planType?.toLowerCase();
-          
           if (normalizedPlanType === "starter") {
             creditsToAdd = 40;
           } else if (normalizedPlanType === "creator") {
@@ -671,11 +500,8 @@ export default function CheckoutPage() {
           } else if (normalizedPlanType === "pro") {
             creditsToAdd = 300;
           } else if (normalizedPlanType === "free") {
-            // Free users don't get credits - this is expected
-            console.log('💳 Free user retry - no credits to allocate');
             return;
           }
-          
           await allocateCredits(subscriptionId, planType, creditsToAdd);
         } else {
           throw creditError;
@@ -687,16 +513,12 @@ export default function CheckoutPage() {
     }
   };
 
-  // Make sure allocateCredits only triggers a toast if credits were actually allocated
   const allocateCredits = async (subscriptionId: string, planType: string, creditsToAdd: number) => {
     try {
-
-      // Get current user ID
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('Please sign in to continue');
       }
-
       const response = await fetch('/api/payments/allocate-credits', {
         method: 'POST',
         headers: {
@@ -710,20 +532,15 @@ export default function CheckoutPage() {
           userId: user.id
         })
       });
-
       const result = await response.json();
-
       if (result.success) {
         if (result.alreadyAllocated) {
           return { success: true, alreadyAllocated: true };
         } else {
           return { success: true, credits: result.credits, creditsAdded: result.creditsAdded };
         }
-      } else {
-        console.error('❌ Credit allocation failed:', result.error);
       }
     } catch (error) {
-      console.error('❌ Error allocating credits:', error);
       throw error;
     }
   };
@@ -742,11 +559,6 @@ export default function CheckoutPage() {
 
   const getPlanDetails = (planType: string) => {
     const normalizedPlanType = planType?.toLowerCase();
-    
-    // Debug: Log the plan type being detected
-    console.log('Detected plan type:', planType);
-    console.log('Normalized plan type:', normalizedPlanType);
-    
     const planDetails = {
       starter: {
         name: "Starter",
@@ -791,17 +603,12 @@ export default function CheckoutPage() {
         icon: <Crown className="h-5 w-5" />
       }
     };
-
     return planDetails[normalizedPlanType as keyof typeof planDetails] || planDetails.starter;
   };
 
-  // Function to fetch user's current plan from database
   const fetchUserPlanFromDatabase = async () => {
     if (!currentUser?.id) return null;
-    
     try {
-      console.log('🔍 Fetching user plan from database for user:', currentUser.id);
-      
       const { data: subscriptions, error } = await supabase
         .from('subscriptions')
         .select('plan_type, amount, billing_cycle')
@@ -809,161 +616,90 @@ export default function CheckoutPage() {
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1);
-
       if (error) {
-        console.error('❌ Error fetching user plan from database:', error);
         return null;
       }
-
       if (subscriptions && subscriptions.length > 0) {
         const latestSubscription = subscriptions[0];
-        console.log('✅ Found active subscription in database:', latestSubscription);
         return latestSubscription.plan_type;
       }
-
-      console.log('ℹ️ No active subscription found in database');
       return null;
     } catch (error) {
-      console.error('❌ Error fetching user plan:', error);
       return null;
     }
   };
 
   const getDetectedPlanType = () => {
-    // Enhanced plan detection with better logging
-    console.log('🔍 Detecting plan type from subscription data:', subscriptionData);
-    console.log('🔍 Dynamic plan type from database:', dynamicPlanType);
-    
-    // First, try to get plan type from dynamically fetched database data
     if (dynamicPlanType) {
-      console.log('✅ Using dynamic plan type from database:', dynamicPlanType);
       return dynamicPlanType;
     }
-    
-    // Second, try to get plan type from subscription data directly
     if (subscriptionData?.plan_type) {
-      console.log('✅ Found plan_type in subscription data:', subscriptionData.plan_type);
       return subscriptionData.plan_type;
     }
-
-    // Try to get from metadata
     if (subscriptionData?.metadata?.plan_type) {
-      console.log('✅ Found plan_type in metadata:', subscriptionData.metadata.plan_type);
       return subscriptionData.metadata.plan_type;
     }
-
-    // Try to get from product_id and extract plan
     if (subscriptionData?.product_id) {
       const planFromProduct = extractPlanFromProductId(subscriptionData.product_id);
       if (planFromProduct) {
-        console.log('✅ Extracted plan from product_id:', planFromProduct);
         return planFromProduct;
       }
     }
-
-    // Try to get from metadata.product_id
     if (subscriptionData?.metadata?.product_id) {
       const planFromProduct = extractPlanFromProductId(subscriptionData.metadata.product_id);
       if (planFromProduct) {
-        console.log('✅ Extracted plan from metadata.product_id:', planFromProduct);
         return planFromProduct;
       }
     }
-
-    // Try to get from subscription ID itself
     if (subscriptionData?.id) {
       const planFromId = extractPlanFromProductId(subscriptionData.id);
       if (planFromId) {
-        console.log('✅ Extracted plan from subscription ID:', planFromId);
         return planFromId;
       }
     }
-
-    // Try to get from metadata.plan
     if (subscriptionData?.metadata?.plan) {
-      console.log('✅ Found plan in metadata.plan:', subscriptionData.metadata.plan);
       return subscriptionData.metadata.plan;
     }
-
-    // Try to get from metadata.plan_name
     if (subscriptionData?.metadata?.plan_name) {
-      console.log('✅ Found plan in metadata.plan_name:', subscriptionData.metadata.plan_name);
       return subscriptionData.metadata.plan_name;
     }
-
-    // Try to get from metadata.name
     if (subscriptionData?.metadata?.name) {
-      console.log('✅ Found plan in metadata.name:', subscriptionData.metadata.name);
       return subscriptionData.metadata.name;
     }
-
-    // Try to get from metadata.product_name
     if (subscriptionData?.metadata?.product_name) {
       const planFromProductName = extractPlanFromProductId(subscriptionData.metadata.product_name);
       if (planFromProductName) {
-        console.log('✅ Extracted plan from metadata.product_name:', planFromProductName);
         return planFromProductName;
       }
     }
-
-    // Debug: Log all possible locations
-    console.log('🔍 All possible plan sources:', {
-      plan_type: subscriptionData?.plan_type,
-      metadata_plan_type: subscriptionData?.metadata?.plan_type,
-      product_id: subscriptionData?.product_id,
-      metadata_product_id: subscriptionData?.metadata?.product_id,
-      metadata_product_name: subscriptionData?.metadata?.product_name,
-      metadata_plan: subscriptionData?.metadata?.plan,
-      metadata_plan_name: subscriptionData?.metadata?.plan_name,
-      metadata_name: subscriptionData?.metadata?.name,
-      id: subscriptionData?.id,
-      full_metadata: subscriptionData?.metadata
-    });
-
-    // If we still can't find it, try to make an educated guess based on subscription ID
     if (subscriptionData?.id) {
       const subscriptionId = subscriptionData.id.toLowerCase();
-      
-      // Look for common patterns in subscription IDs
       if (subscriptionId.includes('starter') || subscriptionId.includes('basic')) {
-        console.log('🎯 Guessed plan from subscription ID pattern: starter');
         return 'starter';
       }
       if (subscriptionId.includes('creator') || subscriptionId.includes('premium')) {
-        console.log('🎯 Guessed plan from subscription ID pattern: creator');
         return 'creator';
       }
       if (subscriptionId.includes('pro') || subscriptionId.includes('enterprise')) {
-        console.log('🎯 Guessed plan from subscription ID pattern: pro');
         return 'pro';
       }
     }
-
-    // Try to get from amount if available
     if (subscriptionData?.amount) {
       const amount = parseFloat(subscriptionData.amount);
       if (amount <= 10) {
-        console.log('💰 Guessed plan from amount (≤$10): starter');
         return 'starter';
       } else if (amount <= 20) {
-        console.log('💰 Guessed plan from amount ($10-$20): creator');
         return 'creator';
       } else {
-        console.log('💰 Guessed plan from amount (>$20): pro');
         return 'pro';
       }
     }
-
-    console.log('⚠️ No plan type detected, defaulting to starter');
-    return 'starter'; // Default fallback
+    return 'starter';
   };
 
   const extractPlanFromProductId = (productId: string) => {
     if (!productId) return null;
-    
     const normalizedProductId = productId.toLowerCase();
-    
-    // Look for exact matches first
     if (normalizedProductId.includes('starter') || normalizedProductId.includes('basic')) {
       return 'starter';
     }
@@ -973,8 +709,6 @@ export default function CheckoutPage() {
     if (normalizedProductId.includes('pro') || normalizedProductId.includes('enterprise')) {
       return 'pro';
     }
-    
-    // Look for price-based patterns
     if (normalizedProductId.includes('9.89') || normalizedProductId.includes('989')) {
       return 'starter';
     }
@@ -984,8 +718,6 @@ export default function CheckoutPage() {
     if (normalizedProductId.includes('38.89') || normalizedProductId.includes('3889')) {
       return 'pro';
     }
-    
-    // Look for credit-based patterns
     if (normalizedProductId.includes('40') || normalizedProductId.includes('forty')) {
       return 'starter';
     }
@@ -995,14 +727,9 @@ export default function CheckoutPage() {
     if (normalizedProductId.includes('300') || normalizedProductId.includes('three')) {
       return 'pro';
     }
-    
-    // Look for common subscription patterns
     if (normalizedProductId.includes('monthly') || normalizedProductId.includes('month')) {
-      // If it's monthly but no specific plan, default to starter
       return 'starter';
     }
-    
-    console.log('Could not extract plan from product ID:', productId);
     return null;
   };
 
@@ -1012,7 +739,6 @@ export default function CheckoutPage() {
 
   const debugSubscription = async (subscriptionId: string) => {
     try {
-      
       const response = await fetch('/api/payments/debug-subscription', {
         method: 'POST',
         headers: {
@@ -1020,14 +746,9 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({ subscriptionId })
       });
-
       const result = await response.json();
-      
       if (result.success) {
-        
         const { databaseSubscription, dodoSubscription, planType } = result.debug;
-        
-        // Show debug info in toast
         const planTypeFound = planType.fromDatabase || planType.fromDodo;
         if (planTypeFound) {
           toast.success(`Debug: Found plan type "${planTypeFound}"`);
@@ -1035,11 +756,9 @@ export default function CheckoutPage() {
           toast.error(`Debug: No plan type found for subscription ${subscriptionId}`);
         }
       } else {
-        console.error('❌ Debug failed:', result.error);
         toast.error(`Debug failed: ${result.error}`);
       }
     } catch (error) {
-      console.error('❌ Error debugging subscription:', error);
       toast.error('Failed to debug subscription');
     }
   };
@@ -1060,7 +779,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // Show authentication error with sign in option
   if (error === 'Please sign in to complete your purchase.' || error === 'Authentication error. Please sign in again.') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#171717]">
@@ -1110,7 +828,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // Main checkout result UI
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#171717] p-4">
       <Card className="w-full max-w-lg shadow-lg border border-border">
@@ -1155,7 +872,6 @@ export default function CheckoutPage() {
         <CardContent className="space-y-6 pt-0">
           {paymentStatus === 'success' && (
             <div className="space-y-6">
-              {/* Success Message */}
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-6 rounded-xl border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full">
@@ -1170,8 +886,6 @@ export default function CheckoutPage() {
                     </p>
                   </div>
                 </div>
-                
-                {/* What's Next */}
                 <div className="space-y-3">
                   <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm">
                     What you can do now:

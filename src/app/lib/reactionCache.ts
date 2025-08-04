@@ -1,286 +1,227 @@
-import { supabase } from "@/app/lib/supabaseClient";
-import { performanceMonitor } from "./performanceMonitor";
-import { requestLimiter } from "./requestLimiter";
+import { supabase } from './supabaseClient';
 
-// In-memory cache for user reactions
-const reactionCache = new Map<string, { reactions: any[], timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+interface CachedReaction {
+  data: any;
+  timestamp: number;
+  expiresAt: number;
+}
 
-// Cache for reaction counts
-const reactionCountCache = new Map<string, { count: number, timestamp: number }>();
-const COUNT_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+class ReactionCache {
+  private userReactionsCache = new Map<string, CachedReaction>();
+  private reactionCountsCache = new Map<string, CachedReaction>();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-export class ReactionCache {
-  // Get user's reactions with caching
-  static async getUserReactions(userId: string, forceRefresh = false): Promise<any[]> {
-    const cacheKey = `user_reactions_${userId}`;
-    const cached = reactionCache.get(cacheKey);
-    
-    // Return cached data if still valid
-    if (!forceRefresh && cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      performanceMonitor.recordCacheHit();
-      return cached.reactions;
+  private isExpired(cached: CachedReaction): boolean {
+    return Date.now() > cached.expiresAt;
+  }
+
+  private setCache<T>(cache: Map<string, CachedReaction>, key: string, data: T): void {
+    const now = Date.now();
+    cache.set(key, {
+      data,
+      timestamp: now,
+      expiresAt: now + this.CACHE_DURATION
+    });
+  }
+
+  private getCache<T>(cache: Map<string, CachedReaction>, key: string): T | null {
+    const cached = cache.get(key);
+    if (cached && !this.isExpired(cached)) {
+      return cached.data as T;
     }
+    return null;
+  }
+
+  async getUserReactions(userId: string): Promise<Set<string>> {
+    const cacheKey = `user_reactions_${userId}`;
+    const cached = this.getCache<Set<string>>(this.userReactionsCache, cacheKey);
     
-    performanceMonitor.recordCacheMiss();
-    const stopTimer = performanceMonitor.startTimer('getUserReactions');
-    
+    if (cached) {
+      return cached;
+    }
+
     try {
-      // Use request limiter to prevent excessive calls
-      const data = await requestLimiter.executeRequest(
-        `getUserReactions_${userId}`,
-        async () => {
-          const { data, error } = await supabase
-            .from("thumbnail_reactions")
-            .select("thumbnail_id, reaction_type, created_at")
-            .eq("user_id", userId)
-            .eq("reaction_type", "love");
-          
-          if (error) {
-            console.error("Error fetching user reactions:", error);
-            return cached?.reactions || [];
-          }
-          
-          // Ensure thumbnail_id is properly handled as number
-          const processedData = (data || []).map(reaction => ({
-            ...reaction,
-            thumbnail_id: Number(reaction.thumbnail_id) // Ensure it's a number
-          }));
-          
-          console.log('🔍 User reactions fetched:', {
-            userId,
-            rawData: data,
-            processedData,
-            count: processedData.length
-          });
-          
-          return processedData;
-        }
-      );
-      
-      // Update cache
-      reactionCache.set(cacheKey, {
-        reactions: data,
-        timestamp: Date.now()
-      });
-      
-      stopTimer();
-      return data;
+      const { data, error } = await supabase
+        .from('thumbnail_reactions')
+        .select('thumbnail_id')
+        .eq('user_id', userId)
+        .eq('reaction_type', 'love');
+
+      if (error) {
+        console.error("Error fetching user reactions:", error);
+        return new Set();
+      }
+
+      const reactedIds = new Set(data?.map(item => item.thumbnail_id.toString()) || []);
+      this.setCache(this.userReactionsCache, cacheKey, reactedIds);
+      return reactedIds;
     } catch (error) {
       console.error("Error in getUserReactions:", error);
-      stopTimer();
-      return cached?.reactions || [];
+      return new Set();
     }
   }
-  
-  // Get reaction count with caching
-  static async getReactionCount(thumbnailId: string, forceRefresh = false): Promise<number> {
+
+  async getReactionCount(thumbnailId: string): Promise<number> {
     const cacheKey = `reaction_count_${thumbnailId}`;
-    const cached = reactionCountCache.get(cacheKey);
+    const cached = this.getCache<number>(this.reactionCountsCache, cacheKey);
     
-    // Return cached data if still valid
-    if (!forceRefresh && cached && Date.now() - cached.timestamp < COUNT_CACHE_DURATION) {
-      performanceMonitor.recordCacheHit();
-      return cached.count;
+    if (cached !== null) {
+      return cached;
     }
-    
-    performanceMonitor.recordCacheMiss();
-    const stopTimer = performanceMonitor.startTimer('getReactionCount');
-    
+
     try {
-      // Use request limiter to prevent excessive calls
-      const count = await requestLimiter.executeRequest(
-        `getReactionCount_${thumbnailId}`,
-        async () => {
-          const { data, error } = await supabase
-            .from("thumbnail_reactions")
-            .select("id", { count: "exact" })
-            .eq("thumbnail_id", parseInt(thumbnailId)) // Ensure it's parsed as integer
-            .eq("reaction_type", "love");
-          
-          if (error) {
-            console.error("Error fetching reaction count:", error);
-            return cached?.count || 0;
-          }
-          
-          return data?.length || 0;
-        }
-      );
-      
-      // Update cache
-      reactionCountCache.set(cacheKey, {
-        count,
-        timestamp: Date.now()
-      });
-      
-      stopTimer();
-      return count;
+      const { count, error } = await supabase
+        .from('thumbnail_reactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('thumbnail_id', thumbnailId)
+        .eq('reaction_type', 'love');
+
+      if (error) {
+        console.error("Error fetching reaction count:", error);
+        return 0;
+      }
+
+      this.setCache(this.reactionCountsCache, cacheKey, count || 0);
+      return count || 0;
     } catch (error) {
       console.error("Error in getReactionCount:", error);
-      stopTimer();
-      return cached?.count || 0;
+      return 0;
     }
   }
-  
-  // Check if user has reacted to a specific thumbnail
-  static async hasUserReacted(userId: string, thumbnailId: string, forceRefresh = false): Promise<boolean> {
-    const userReactions = await this.getUserReactions(userId, forceRefresh);
-    // Convert thumbnail_id to string for comparison
-    return userReactions.some(reaction => reaction.thumbnail_id.toString() === thumbnailId);
-  }
-  
-  // Batch check multiple thumbnails for user reactions
-  static async batchCheckUserReactions(userId: string, thumbnailIds: string[], forceRefresh = false): Promise<Set<string>> {
-    const userReactions = await this.getUserReactions(userId, forceRefresh);
-    const reactedIds = new Set<string>();
+
+  async batchCheckUserReactions(userId: string, thumbnailIds: string[]): Promise<Set<string>> {
+    const cacheKey = `user_reactions_${userId}`;
+    const cached = this.getCache<Set<string>>(this.userReactionsCache, cacheKey);
     
-    // Ensure all thumbnailIds are strings for consistent comparison
-    const thumbnailIdsAsStrings = thumbnailIds.map(id => id.toString());
-    
-    console.log('🔍 Batch checking user reactions:', {
-      userId,
-      thumbnailIds,
-      thumbnailIdsAsStrings,
-      userReactions,
-      userReactionsLength: userReactions.length
-    });
-    
-    userReactions.forEach(reaction => {
-      // Convert thumbnail_id to string for comparison
-      const reactionThumbnailId = reaction.thumbnail_id.toString();
-      console.log('🔍 Checking reaction:', {
-        reactionThumbnailId,
-        thumbnailIdsAsStrings,
-        includes: thumbnailIdsAsStrings.includes(reactionThumbnailId),
-        thumbnailIdsType: typeof thumbnailIdsAsStrings[0],
-        reactionThumbnailIdType: typeof reactionThumbnailId
+    if (cached) {
+      // Filter cached reactions to only include the requested thumbnail IDs
+      const filteredReactions = new Set<string>();
+      thumbnailIds.forEach(id => {
+        if (cached.has(id)) {
+          filteredReactions.add(id);
+        }
       });
-      
-      if (thumbnailIdsAsStrings.includes(reactionThumbnailId)) {
-        reactedIds.add(reactionThumbnailId);
-        console.log('✅ Found user reaction for thumbnail:', reactionThumbnailId);
+      return filteredReactions;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('thumbnail_reactions')
+        .select('thumbnail_id')
+        .eq('user_id', userId)
+        .eq('reaction_type', 'love')
+        .in('thumbnail_id', thumbnailIds);
+
+      if (error) {
+        console.error("Error in batchCheckUserReactions:", error);
+        return new Set();
       }
-    });
-    
-    console.log('🔍 Final reacted IDs:', Array.from(reactedIds));
-    return reactedIds;
+
+      const reactedIds = new Set(data?.map(item => item.thumbnail_id.toString()) || []);
+      this.setCache(this.userReactionsCache, cacheKey, reactedIds);
+      return reactedIds;
+    } catch (error) {
+      console.error("Error in batchCheckUserReactions:", error);
+      return new Set();
+    }
   }
-  
-  // Batch get reaction counts for multiple thumbnails
-  static async batchGetReactionCounts(thumbnailIds: string[], forceRefresh = false): Promise<Map<string, number>> {
-    const counts = new Map<string, number>();
-    
-    // Check cache first
+
+  async batchGetReactionCounts(thumbnailIds: string[]): Promise<Map<string, number>> {
+    const results = new Map<string, number>();
     const uncachedIds: string[] = [];
+
+    // Check cache first
     thumbnailIds.forEach(id => {
       const cacheKey = `reaction_count_${id}`;
-      const cached = reactionCountCache.get(cacheKey);
+      const cached = this.getCache<number>(this.reactionCountsCache, cacheKey);
       
-      if (!forceRefresh && cached && Date.now() - cached.timestamp < COUNT_CACHE_DURATION) {
-        counts.set(id, cached.count);
+      if (cached !== null) {
+        results.set(id, cached);
       } else {
         uncachedIds.push(id);
       }
     });
-    
-    // Fetch uncached counts in batch
+
+    // Fetch uncached counts
     if (uncachedIds.length > 0) {
       try {
-        const data = await requestLimiter.executeRequest(
-          `batchGetReactionCounts_${uncachedIds.join('_')}`,
-          async () => {
-            const { data, error } = await supabase
-              .from("thumbnail_reactions")
-              .select("thumbnail_id")
-              .in("thumbnail_id", uncachedIds.map(id => parseInt(id))) // Ensure all IDs are parsed as integers
-              .eq("reaction_type", "love");
-            
-            if (error) {
-              console.error("Error in batchGetReactionCounts:", error);
-              return [];
-            }
-            
-            return data || [];
-          }
-        );
+        console.log("Fetching reaction counts for:", uncachedIds);
         
-        // Count reactions per thumbnail
-        const countMap = new Map<string, number>();
-        data.forEach((reaction: any) => {
-          // Ensure thumbnail_id is properly converted to string
-          const id = reaction.thumbnail_id.toString();
-          countMap.set(id, (countMap.get(id) || 0) + 1);
-        });
-        
-        console.log('🔍 Batch reaction data processing:', {
-          rawData: data,
-          processedCounts: Object.fromEntries(countMap),
-          uncachedIds
-        });
-        
-        // Update cache and results
-        uncachedIds.forEach(id => {
-          const count = countMap.get(id) || 0;
-          counts.set(id, count);
-          
-          // Update cache
-          reactionCountCache.set(`reaction_count_${id}`, {
-            count,
-            timestamp: Date.now()
+        const { data, error } = await supabase
+          .from('thumbnail_reactions')
+          .select('thumbnail_id')
+          .eq('reaction_type', 'love')
+          .in('thumbnail_id', uncachedIds);
+
+        if (error) {
+          console.error("Error in batchGetReactionCounts:", error);
+          // Set 0 for all uncached IDs on error
+          uncachedIds.forEach(id => {
+            results.set(id, 0);
+            const cacheKey = `reaction_count_${id}`;
+            this.setCache(this.reactionCountsCache, cacheKey, 0);
           });
-        });
+        } else if (data) {
+          console.log("Reaction data received:", data);
+          // Count reactions for each thumbnail
+          const countMap = new Map<string, number>();
+          data.forEach(item => {
+            const id = item.thumbnail_id.toString();
+            countMap.set(id, (countMap.get(id) || 0) + 1);
+          });
+
+          // Cache and add to results
+          countMap.forEach((count, id) => {
+            const cacheKey = `reaction_count_${id}`;
+            this.setCache(this.reactionCountsCache, cacheKey, count);
+            results.set(id, count);
+          });
+
+          // Set 0 for thumbnails with no reactions
+          uncachedIds.forEach(id => {
+            if (!results.has(id)) {
+              results.set(id, 0);
+              const cacheKey = `reaction_count_${id}`;
+              this.setCache(this.reactionCountsCache, cacheKey, 0);
+            }
+          });
+        } else {
+          console.log("No reaction data returned");
+          // No data returned, set 0 for all
+          uncachedIds.forEach(id => {
+            results.set(id, 0);
+            const cacheKey = `reaction_count_${id}`;
+            this.setCache(this.reactionCountsCache, cacheKey, 0);
+          });
+        }
       } catch (error) {
         console.error("Error in batchGetReactionCounts:", error);
+        // Set 0 for all uncached IDs on error
+        uncachedIds.forEach(id => {
+          results.set(id, 0);
+          const cacheKey = `reaction_count_${id}`;
+          this.setCache(this.reactionCountsCache, cacheKey, 0);
+        });
       }
     }
-    
-    return counts;
+
+    return results;
   }
-  
-  // Clear cache for a specific user
-  static clearUserCache(userId: string) {
-    reactionCache.delete(`user_reactions_${userId}`);
+
+  invalidateUserCache(userId: string): void {
+    const cacheKey = `user_reactions_${userId}`;
+    this.userReactionsCache.delete(cacheKey);
   }
-  
-  // Clear cache for a specific thumbnail
-  static clearThumbnailCache(thumbnailId: string) {
-    reactionCountCache.delete(`reaction_count_${thumbnailId}`);
+
+  invalidateThumbnailCache(thumbnailId: string): void {
+    const cacheKey = `reaction_count_${thumbnailId}`;
+    this.reactionCountsCache.delete(cacheKey);
   }
-  
-  // Clear all cache
-  static clearAllCache() {
-    reactionCache.clear();
-    reactionCountCache.clear();
+
+  clearAllCache(): void {
+    this.userReactionsCache.clear();
+    this.reactionCountsCache.clear();
   }
-  
-  // Invalidate cache when user reacts/unreacts - FIXED VERSION
-  static invalidateUserReactions(userId: string, thumbnailId: string) {
-    // Clear user's reaction cache to force fresh fetch
-    this.clearUserCache(userId);
-    
-    // Clear thumbnail's count cache to force fresh fetch
-    this.clearThumbnailCache(thumbnailId);
-    
-    // Also clear any batch caches that might contain this data
-    const cacheKeysToDelete: string[] = [];
-    reactionCache.forEach((_, key) => {
-      if (key.includes(`user_reactions_${userId}`)) {
-        cacheKeysToDelete.push(key);
-      }
-    });
-    
-    reactionCountCache.forEach((_, key) => {
-      if (key.includes(`reaction_count_${thumbnailId}`)) {
-        cacheKeysToDelete.push(key);
-      }
-    });
-    
-    cacheKeysToDelete.forEach(key => {
-      if (key.startsWith('user_reactions_')) {
-        reactionCache.delete(key);
-      } else if (key.startsWith('reaction_count_')) {
-        reactionCountCache.delete(key);
-      }
-    });
-  }
-} 
+}
+
+export const reactionCache = new ReactionCache(); 

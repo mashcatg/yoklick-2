@@ -81,7 +81,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ user_id:
             return;
           }
         } else {
-          console.error("Error fetching user profile:", response.statusText);
           toast.error("User not found");
           return;
         }
@@ -96,7 +95,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ user_id:
           .order("created_at", { ascending: false }); // Order by newest first
 
         if (thumbnailsError) {
-          console.error("Error fetching user thumbnails:", thumbnailsError);
           toast.error("Failed to load thumbnails");
           return;
         }
@@ -105,7 +103,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ user_id:
         setUserThumbnails(thumbnails || []);
 
       } catch (error) {
-        console.error("Error fetching data:", error);
         if (error instanceof Error) {
           if (error.message.includes('Network') || error.message.includes('fetch')) {
             toast.error("Network error. Please check your connection and refresh the page.");
@@ -180,7 +177,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ user_id:
         setUserThumbnails([]);
       }
     } catch (error) {
-      console.error("Error regenerating thumbnail:", error);
       toast.error("Failed to regenerate thumbnail");
       setUserThumbnails([]);
     } finally {
@@ -207,7 +203,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ user_id:
         toast.error("Failed to download any thumbnails. Please try downloading individually.");
       }
     } catch (error) {
-      console.error('Bulk download error:', error);
       toast.error("Failed to download thumbnails. Please try again.");
     } finally {
       setIsBulkDownloading(false);
@@ -225,7 +220,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ user_id:
       toast.success(`Sharing ${selectedIds.length} thumbnails...`);
       setSelectedIds([]);
     } catch (error) {
-      console.error("Error sharing thumbnails:", error);
       toast.error("Failed to share thumbnails");
     }
   };

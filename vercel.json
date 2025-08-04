@@ -1,34 +1,13 @@
 {
   "crons": [
     {
-      "path": "/api/cron/expire-credits",
+      "path": "/api/cron/daily-maintenance",
       "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/sync-subscriptions",
-      "schedule": "0 */6 * * *"
-    },
-    {
-      "path": "/api/cron/check-auto-renew",
-      "schedule": "0 */2 * * *"
-    },
-    {
-      "path": "/api/cron/retry-failed-payments",
-      "schedule": "0 */12 * * *"
     }
   ],
   "functions": {
-    "src/app/api/cron/expire-credits/route.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/cron/sync-subscriptions/route.ts": {
-      "maxDuration": 60
-    },
-    "src/app/api/cron/check-auto-renew/route.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/cron/retry-failed-payments/route.ts": {
-      "maxDuration": 45
+    "src/app/api/cron/daily-maintenance/route.ts": {
+      "maxDuration": 120
     }
   }
 } 
