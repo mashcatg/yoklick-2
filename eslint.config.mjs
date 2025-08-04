@@ -30,6 +30,10 @@ const eslintConfig = [
       "@typescript-eslint/no-misused-promises": "off",
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/no-floating-promises": "off",
+      // Disable image optimization warnings
+      "@next/next/no-img-element": "off",
+      // Disable unused eslint-disable warnings
+      "eslint-comments/no-unused-disable": "off",
     },
   },
 ];

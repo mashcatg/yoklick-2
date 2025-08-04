@@ -157,18 +157,6 @@ const nextConfig: NextConfig = {
 
     return config;
   },
-
-  // TypeScript configuration
-  typescript: {
-    // Enable type checking in production
-    ignoreBuildErrors: false,
-  },
-
-  // ESLint configuration
-  eslint: {
-    // Enable ESLint in production
-    ignoreDuringBuilds: false,
-  },
 };
 
 export default nextConfig;
