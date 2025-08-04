@@ -59,7 +59,7 @@ export default function GlobalLoader() {
           <img
             src="/yoklick.png"
             alt="Yoklick"
-            className={`h-10 w-15 animate-pulse transition-opacity ${
+            className={`h-10 w-15 block dark:hidden animate-pulse transition-opacity ${
               theme === 'dark' ? 'opacity-0' : 'opacity-100'
             }`}
           />
@@ -67,7 +67,7 @@ export default function GlobalLoader() {
           <img
             src="/yoklick-logo-dark-mode.png"
             alt="Yoklick"
-            className={`absolute inset-0 h-10 w-15 animate-pulse transition-opacity ${
+            className={`absolute inset-0 hidden dark:block h-10 w-15 animate-pulse transition-opacity ${
               theme === 'dark' ? 'opacity-100' : 'opacity-0'
             }`}
           />
