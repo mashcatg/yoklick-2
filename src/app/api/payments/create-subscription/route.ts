@@ -5,7 +5,6 @@ import { rateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
 
 const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY;
 
-// Add a simple GET method for testing
 export async function GET(req: NextRequest) {
   return NextResponse.json({ 
     message: "Create subscription endpoint is accessible",
@@ -60,260 +59,136 @@ export async function POST(req: NextRequest) {
     const isDevelopment = process.env.NODE_ENV === 'development';
     const environment = isDevelopment ? 'test_mode' : 'live_mode';
     
-    console.log('Environment detection:', {
-      NODE_ENV: process.env.NODE_ENV,
-      isDevelopment,
-      environment,
-      hasApiKey: !!DODO_API_KEY,
-      apiKeyLength: DODO_API_KEY?.length || 0,
-      vercelEnv: process.env.VERCEL_ENV
-    });
-    
     const client = new DodoPayments({
       bearerToken: DODO_API_KEY,
       environment: environment,
     });
 
+    // Create or get customer first
+    let customerId = user.id;
+    
     try {
-      // Create or get customer first
-      let customerId = user.id;
-      
-      try {
-        // Try to get existing customer
-        const customer = await client.customers.retrieve(customerId);
-        console.log('Existing customer found:', customer.customer_id);
-      } catch (error: any) {
-        console.log('Customer retrieval error:', error.status, error.message);
-        if (error.status === 404) {
-          // Create new customer
-          console.log('Creating new customer for user:', user.id);
-          const newCustomer = await client.customers.create({
-            email: user.email || "",
-            name: user.user_metadata?.full_name || user.email || "",
-          });
-          customerId = newCustomer.customer_id;
-          console.log('New customer created:', customerId);
-        } else {
-          console.error('Customer API error:', error);
-          throw error;
-        }
-      }
-
-      // Create subscription using the official SDK
-      console.log('Creating subscription with params:', {
-        customerId,
-        productId,
-        planType,
-        userId: user.id
-      });
-      
-      const subscription = await client.subscriptions.create({
-        customer: { customer_id: customerId },
-        product_id: productId,
-        quantity: 1,
-        billing: {
-          city: "Default City",
-          country: "US",
-          state: "Default State",
-          street: "Default Street",
-          zipcode: "12345"
-        },
-        metadata: {
-          user_id: user.id,
-          plan_type: planType,
-          auto_renew_enabled: "true", // Always enable auto-renewal
-        },
-        trial_period_days: 0,
-      });
-      
-      console.log('Subscription created successfully:', subscription.subscription_id);
-
-      // Save subscription to local database
-      const { error: subscriptionError } = await supabase
-        .from("subscriptions")
-        .insert({
-          subscription_id: subscription.subscription_id,
-          user_id: user.id,
-          status: "pending",
-          plan_type: planType,
-          amount: 0, // Will be updated when payment is completed
-          billing_cycle: "monthly", // Default to monthly, can be updated later
-          created_at: new Date().toISOString(),
-          metadata: {
-            user_id: user.id,
-            plan_type: planType,
-            dodo_subscription_id: subscription.subscription_id,
-            auto_renew_enabled: true, // Always enable auto-renewal
-            cancel_at_next_billing_date: false, // Ensure auto-renewal is enabled
-          }
-        });
-
-      if (subscriptionError) {
-        console.error("Error saving subscription to database:", subscriptionError);
-        // Continue anyway as the subscription was created in Dodo Payments
-      }
-
-      // Update user metadata with subscription info
-      await supabase.auth.updateUser({
-        data: {
-          subscription_id: subscription.subscription_id,
-          subscription_status: "pending", // Set to pending until payment is completed
-          plan_type: planType,
-          subscription_created_at: new Date().toISOString(),
-        }
-      });
-
-      // Generate Dodo Payments checkout URL (test vs live)
-      const checkoutBaseUrl = isDevelopment ? 'https://test.checkout.dodopayments.com' : 'https://checkout.dodopayments.com';
-      const redirectUrl = `https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=${subscription.subscription_id}`;
-      const dodoCheckoutUrl = `${checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent(redirectUrl)}`;
-      
-      console.log('Checkout URL generated:', {
-        checkoutBaseUrl,
-        productId,
-        redirectUrl,
-        finalUrl: dodoCheckoutUrl
-      });
-
-      // Add rate limit headers to response
-      const headers = getRateLimitHeaders(authHeader, 'subscription');
-
-      return NextResponse.json({
-        success: true,
-        subscription: subscription,
-        checkout_url: dodoCheckoutUrl
-      }, { headers });
-
+      // Try to get existing customer
+      const customer = await client.customers.retrieve(customerId);
+      console.log('Existing customer found:', customer.customer_id);
     } catch (error: any) {
-      console.error('Dodo Payments API error:', {
-        error: error.message,
-        status: error.status,
-        name: error.name,
-        stack: error.stack,
-        environment: environment
-      });
-      
-      // If we get a 401 error and we're in production, try with test mode
-      if (error.status === 401 && !isDevelopment) {
-        console.log('Retrying with test mode due to 401 error');
-        try {
-          const testClient = new DodoPayments({
-            bearerToken: DODO_API_KEY,
-            environment: 'test_mode',
-          });
-          
-          // Retry customer creation with test mode
-          let customerId = user.id;
-          try {
-            const customer = await testClient.customers.retrieve(customerId);
-          } catch (customerError: any) {
-            if (customerError.status === 404) {
-              const newCustomer = await testClient.customers.create({
-                email: user.email || "",
-                name: user.user_metadata?.full_name || user.email || "",
-              });
-              customerId = newCustomer.customer_id;
-            } else {
-              throw customerError;
-            }
-          }
-          
-          // Retry subscription creation with test mode
-          const subscription = await testClient.subscriptions.create({
-            customer: { customer_id: customerId },
-            product_id: productId,
-            quantity: 1,
-            billing: {
-              city: "Default City",
-              country: "US",
-              state: "Default State",
-              street: "Default Street",
-              zipcode: "12345"
-            },
-            metadata: {
-              user_id: user.id,
-              plan_type: planType,
-              auto_renew_enabled: "true",
-            },
-            trial_period_days: 0,
-          });
-          
-          console.log('Subscription created successfully with test mode:', subscription.subscription_id);
-          
-          // Generate checkout URL with test mode
-          const checkoutBaseUrl = `${isDevelopment ? 'https://test.checkout.dodopayments.com' : 'https://checkout.dodopayments.com'}`;
-
-          const redirectUrl = `https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=${subscription.subscription_id}`;
-          const dodoCheckoutUrl = `${checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent(redirectUrl)}`;
-          
-          // Save subscription to local database
-          const { error: subscriptionError } = await supabase
-            .from("subscriptions")
-            .insert({
-              subscription_id: subscription.subscription_id,
-              user_id: user.id,
-              status: "pending",
-              plan_type: planType,
-              amount: 0,
-              billing_cycle: "monthly",
-              created_at: new Date().toISOString(),
-              metadata: {
-                user_id: user.id,
-                plan_type: planType,
-                dodo_subscription_id: subscription.subscription_id,
-                auto_renew_enabled: true,
-                cancel_at_next_billing_date: false,
-              }
-            });
-
-          if (subscriptionError) {
-            console.error("Error saving subscription to database:", subscriptionError);
-          }
-
-          // Update user metadata
-          await supabase.auth.updateUser({
-            data: {
-              subscription_id: subscription.subscription_id,
-              subscription_status: "pending",
-              plan_type: planType,
-              subscription_created_at: new Date().toISOString(),
-            }
-          });
-
-          const headers = getRateLimitHeaders(authHeader, 'subscription');
-          return NextResponse.json({
-            success: true,
-            subscription: subscription,
-            checkout_url: dodoCheckoutUrl,
-            note: "Created with test mode due to live mode authentication issue"
-          }, { headers });
-          
-        } catch (retryError: any) {
-          console.error('Retry with test mode also failed:', retryError);
-        }
-      }
-      
-      if (error instanceof DodoPayments.APIError) {
-        return NextResponse.json({ 
-          error: "Dodo Payments API error",
-          details: {
-            status: error.status,
-            name: error.name,
-            message: error.message
-          }
-        }, { status: error.status || 500 });
+      console.log('Customer retrieval error:', error.status, error.message);
+      if (error.status === 404) {
+        // Create new customer
+        console.log('Creating new customer for user:', user.id);
+        const newCustomer = await client.customers.create({
+          email: user.email || "",
+          name: user.user_metadata?.full_name || user.email || "",
+        });
+        customerId = newCustomer.customer_id;
+        console.log('New customer created:', customerId);
       } else {
-        return NextResponse.json({ 
-          error: "Failed to create subscription",
-          details: error instanceof Error ? error.message : "Unknown error"
-        }, { status: 500 });
+        console.error('Customer API error:', error);
+        throw error;
       }
     }
 
-  } catch (error) {
-    return NextResponse.json({ 
-      error: "Internal server error",
-      details: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    // Create subscription using the official SDK
+    console.log('Creating subscription with params:', {
+      customerId,
+      productId,
+      planType,
+      userId: user.id
+    });
+    
+    const subscription = await client.subscriptions.create({
+      customer: { customer_id: customerId },
+      product_id: productId,
+      quantity: 1,
+      billing: {
+        city: "Default City",
+        country: "US",
+        state: "Default State",
+        street: "Default Street",
+        zipcode: "12345"
+      },
+      metadata: {
+        user_id: user.id,
+        plan_type: planType,
+        auto_renew_enabled: "true",
+      },
+      trial_period_days: 0,
+    });
+    
+    console.log('Subscription created successfully:', subscription.subscription_id);
+
+    // Save subscription to local database
+    const { error: subscriptionError } = await supabase
+      .from("subscriptions")
+      .insert({
+        subscription_id: subscription.subscription_id,
+        user_id: user.id,
+        status: "pending",
+        plan_type: planType,
+        amount: 0,
+        billing_cycle: "monthly",
+        created_at: new Date().toISOString(),
+        metadata: {
+          user_id: user.id,
+          plan_type: planType,
+          dodo_subscription_id: subscription.subscription_id,
+          auto_renew_enabled: true,
+          cancel_at_next_billing_date: false,
+        }
+      });
+
+    if (subscriptionError) {
+      console.error("Error saving subscription to database:", subscriptionError);
+    }
+
+    // Update user metadata with subscription info
+    await supabase.auth.updateUser({
+      data: {
+        subscription_id: subscription.subscription_id,
+        subscription_status: "pending",
+        plan_type: planType,
+        subscription_created_at: new Date().toISOString(),
+      }
+    });
+
+    // Generate Dodo Payments checkout URL
+    const checkoutBaseUrl = isDevelopment ? 'https://test.checkout.dodopayments.com' : 'https://checkout.dodopayments.com';
+    const redirectUrl = `https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=${subscription.subscription_id}`;
+    const dodoCheckoutUrl = `${checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent(redirectUrl)}`;
+    
+    console.log('Checkout URL generated:', {
+      checkoutBaseUrl,
+      productId,
+      redirectUrl,
+      finalUrl: dodoCheckoutUrl
+    });
+
+    // Add rate limit headers to response
+    const headers = getRateLimitHeaders(authHeader, 'subscription');
+
+    return NextResponse.json({
+      success: true,
+      subscription: subscription,
+      checkout_url: dodoCheckoutUrl
+    }, { headers });
+
+  } catch (error: any) {
+    console.error('Error in create subscription:', error);
+    
+    if (error instanceof DodoPayments.APIError) {
+      return NextResponse.json({ 
+        error: "Dodo Payments API error",
+        details: {
+          status: error.status,
+          name: error.name,
+          message: error.message
+        }
+      }, { status: error.status || 500 });
+    } else {
+      return NextResponse.json({ 
+        error: "Failed to create subscription",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, { status: 500 });
+    }
   }
 } 

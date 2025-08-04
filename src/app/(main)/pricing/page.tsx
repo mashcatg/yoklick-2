@@ -11,6 +11,13 @@ import { usePayment } from '@/app/context/PaymentContext';
 import { supabase } from '@/app/lib/supabaseClient';
 import { storeUserDataForRedirect } from '@/app/lib/authUtils';
 
+// Helper function to get the correct product ID based on environment
+const getProductId = (baseName: string) => {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const envPrefix = isDevelopment ? '' : 'LIVE_';
+  return process.env[`NEXT_PUBLIC_DODO_${envPrefix}${baseName}_PRODUCT_ID`] || `${baseName.toLowerCase()}-${isDevelopment ? 'dev' : 'prod'}`;
+};
+
 interface Plan {
   name: string;
   price: string;
@@ -30,7 +37,7 @@ const PLANS: { monthly: Plan[], yearly: Plan[] } = {
       price: "$9.89",
       credits: "40 credits",
       period: "/month",
-      productId: process.env.NEXT_PUBLIC_DODO_STARTER_MONTHLY_PRODUCT_ID || "starter-monthly",
+      productId: getProductId("STARTER_MONTHLY"),
       features: [
         "40 AI-generated thumbnails",
         "Basic text positioning",
@@ -44,7 +51,7 @@ const PLANS: { monthly: Plan[], yearly: Plan[] } = {
       name: "Creator",
       price: "$18.89",
       credits: "100 credits",
-      productId: process.env.NEXT_PUBLIC_DODO_CREATOR_MONTHLY_PRODUCT_ID || "creator-monthly",
+      productId: getProductId("CREATOR_MONTHLY"),
       popular: true,
       features: [
         "100 AI-generated thumbnails",
@@ -60,7 +67,7 @@ const PLANS: { monthly: Plan[], yearly: Plan[] } = {
       name: "Pro",
       price: "$38.89",
       credits: "300 credits",
-      productId: process.env.NEXT_PUBLIC_DODO_PRO_MONTHLY_PRODUCT_ID || "pro-monthly",
+      productId: getProductId("PRO_MONTHLY"),
       features: [
         "300 AI-generated thumbnails",
         "All text positioning options",
@@ -80,7 +87,7 @@ const PLANS: { monthly: Plan[], yearly: Plan[] } = {
       period: "/year",
       savings: "Save 30%",
       credits: "40 credits/month",
-      productId: process.env.NEXT_PUBLIC_DODO_STARTER_YEARLY_PRODUCT_ID || "starter-yearly",
+      productId: getProductId("STARTER_YEARLY"),
       features: [
         "40 AI-generated thumbnails",
         "Basic text positioning",
@@ -96,7 +103,7 @@ const PLANS: { monthly: Plan[], yearly: Plan[] } = {
       period: "/year",
       savings: "Save 30%",
       credits: "100 credits/month",
-      productId: process.env.NEXT_PUBLIC_DODO_CREATOR_YEARLY_PRODUCT_ID || "creator-yearly",
+      productId: getProductId("CREATOR_YEARLY"),
       popular: true,
       features: [
         "100 AI-generated thumbnails",
@@ -114,7 +121,7 @@ const PLANS: { monthly: Plan[], yearly: Plan[] } = {
       period: "/year",
       savings: "Save 30%",
       credits: "300 credits/month",
-      productId: process.env.NEXT_PUBLIC_DODO_PRO_YEARLY_PRODUCT_ID || "pro-yearly",
+      productId: getProductId("PRO_YEARLY"),
       features: [
         "300 AI-generated thumbnails",
         "All text positioning options",
@@ -209,7 +216,7 @@ export default function PricingPage() {
 
   const isPaymentConfigured = () => {
     return process.env.NEXT_PUBLIC_DODO_PUBLISHABLE_KEY && 
-           process.env.NEXT_PUBLIC_DODO_STARTER_MONTHLY_PRODUCT_ID;
+           getProductId("STARTER_MONTHLY");
   };
 
   const getCurrentPlan = () => {
