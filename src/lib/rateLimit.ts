@@ -188,8 +188,21 @@ export const searchRateLimiter = new RateLimiter({
   }
 });
 
+export const subscriptionRateLimiter = new RateLimiter({
+  
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 8,
+  keyGenerator: (req) => {
+    const ip = req.headers.get('x-forwarded-for') || 
+               req.headers.get('x-real-ip') || 
+               req.headers.get('cf-connecting-ip') ||
+               'unknown';
+    return `subscription:${ip}`;
+  }
+});
+
 // Utility function for API routes
-export function rateLimit(req: NextRequest, type: 'api' | 'auth' | 'generate' | 'upload' | 'search' | 'cron' | 'webhook') {
+export function rateLimit(req: NextRequest, type: 'api' | 'auth' | 'generate' | 'upload' | 'search' | 'cron' | 'webhook' | 'subscription') {
   let limiter: RateLimiter;
 
   switch (type) {
@@ -211,6 +224,9 @@ export function rateLimit(req: NextRequest, type: 'api' | 'auth' | 'generate' | 
     case 'webhook':
       // No rate limiting for webhooks (they come from trusted sources)
       return { allowed: true, response: undefined };
+    case 'subscription':
+      limiter = subscriptionRateLimiter;
+      break;
     default:
       limiter = apiRateLimiter;
   }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getDodoConfig, getDodoClient } from "@/app/lib/dodoConfig";
+import DodoPayments from "dodopayments";
+
+const DODO_API_KEY = process.env.DODO_API_KEY;
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,20 +44,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Subscription ID is required" }, { status: 400 });
     }
 
-    // Get Dodo Payments configuration
-    let dodoConfig;
-    try {
-      dodoConfig = getDodoConfig();
-    } catch (error: any) {
-      console.error("Dodo Payments configuration error:", error.message);
-      return NextResponse.json({ 
-        error: "Dodo Payments not configured properly",
-        details: error.message
-      }, { status: 503 });
-    }
-
     // Initialize Dodo Payments client
-    const client = getDodoClient();
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const environment = isDevelopment ? 'test_mode' : 'live_mode';
+    
+    const client = new DodoPayments({
+      bearerToken: DODO_API_KEY!,
+      environment: environment,
+    });
 
     try {
       // Fetch subscription from Dodo Payments
@@ -250,12 +246,12 @@ export async function POST(req: NextRequest) {
         }
       }
 
-              // Fetch associated payments using direct API call
-        const paymentsResponse = await fetch(`https://${dodoConfig.environment === 'test_mode' ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscription.subscription_id}`, {
-          headers: {
-            'Authorization': `Bearer ${dodoConfig.apiKey}`,
-            'Content-Type': 'application/json'
-          }
+      // Fetch associated payments using direct API call
+      const paymentsResponse = await fetch(`https://${isDevelopment ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscription.subscription_id}`, {
+        headers: {
+          'Authorization': `Bearer ${DODO_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       let payments: any[] = [];

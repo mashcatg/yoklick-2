@@ -85,41 +85,11 @@ export function CreditsProvider({ children }: Props) {
     }
 
     try {
-      const response = await fetch("/api/payments/subscription-health", {
-        headers: {
-          "Authorization": `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSubscriptionHealth(data);
-        
-        // Update auto-renew status based on the response
-        if (data.health) {
-          setAutoRenewStatus({
-            enabled: data.health.autoRenewEnabled,
-            nextBillingDate: data.health.nextBillingDate,
-            daysUntilRenewal: data.health.daysUntilRenewal,
-            needsAttention: data.status === "past_due" || data.status === "payment_failed" || data.status === "renewal_soon",
-            attentionMessage: data.message,
-          });
-        }
-      } else {
-        console.error("Failed to check subscription health:", response.status);
-        // Set default values on error
-        setSubscriptionHealth(null);
-        setAutoRenewStatus({
-          enabled: true,
-          nextBillingDate: null,
-          daysUntilRenewal: null,
-          needsAttention: false,
-          attentionMessage: null,
-        });
-      }
-    } catch (error) {
-      console.error("Error checking subscription health:", error);
-      // Set default values on error
+      // For now, skip the subscription health check since the function might not be deployed
+      // TODO: Implement a simpler subscription health check
+      console.log("⚠️ Subscription health check skipped - function not deployed");
+      
+      // Set default values
       setSubscriptionHealth(null);
       setAutoRenewStatus({
         enabled: true,
@@ -128,6 +98,8 @@ export function CreditsProvider({ children }: Props) {
         needsAttention: false,
         attentionMessage: null,
       });
+    } catch (error) {
+      console.error("Error checking subscription health:", error);
     }
   };
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getDodoConfig, getDodoClient } from "@/app/lib/dodoConfig";
+import DodoPayments from "dodopayments";
+
+const DODO_API_KEY = process.env.DODO_API_KEY;
 
 export async function GET(req: NextRequest) {
   try {
@@ -30,26 +32,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Subscription ID is required" }, { status: 400 });
     }
 
-    // Get Dodo Payments configuration
-    let dodoConfig;
-    try {
-      dodoConfig = getDodoConfig();
-    } catch (error: any) {
-      console.error("Dodo Payments configuration error:", error.message);
-      return NextResponse.json({ 
-        error: "Dodo Payments not configured properly",
-        details: error.message
-      }, { status: 503 });
-    }
-
     // Initialize Dodo Payments client
-    const client = getDodoClient();
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const environment = isDevelopment ? 'test_mode' : 'live_mode';
+    
+    const client = new DodoPayments({
+      bearerToken: DODO_API_KEY!,
+      environment: environment,
+    });
 
     try {
       // First get subscription details to get customer_id
-      const subscriptionResponse = await fetch(`https://${dodoConfig.environment === 'test_mode' ? 'test' : 'live'}.dodopayments.com/subscriptions/${subscriptionId}`, {
+      const subscriptionResponse = await fetch(`https://${isDevelopment ? 'test' : 'live'}.dodopayments.com/subscriptions/${subscriptionId}`, {
         headers: {
-          'Authorization': `Bearer ${dodoConfig.apiKey}`,
+          'Authorization': `Bearer ${DODO_API_KEY}`,
           'Content-Type': 'application/json'
         }
       });
@@ -64,9 +60,9 @@ export async function GET(req: NextRequest) {
       // Fetch payments from Dodo Payments using customer_id for more comprehensive results
       let dodoPayments: any[] = [];
       if (customerId) {
-        const paymentsResponse = await fetch(`https://${dodoConfig.environment === 'test_mode' ? 'test' : 'live'}.dodopayments.com/payments?customer_id=${customerId}`, {
+        const paymentsResponse = await fetch(`https://${isDevelopment ? 'test' : 'live'}.dodopayments.com/payments?customer_id=${customerId}`, {
           headers: {
-            'Authorization': `Bearer ${dodoConfig.apiKey}`,
+            'Authorization': `Bearer ${DODO_API_KEY}`,
             'Content-Type': 'application/json'
           }
         });
@@ -78,9 +74,9 @@ export async function GET(req: NextRequest) {
         }
       } else {
         // Fallback to subscription_id if customer_id not found
-        const paymentsResponse = await fetch(`https://${dodoConfig.environment === 'test_mode' ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscriptionId}`, {
+        const paymentsResponse = await fetch(`https://${isDevelopment ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscriptionId}`, {
           headers: {
-            'Authorization': `Bearer ${dodoConfig.apiKey}`,
+            'Authorization': `Bearer ${DODO_API_KEY}`,
             'Content-Type': 'application/json'
           }
         });

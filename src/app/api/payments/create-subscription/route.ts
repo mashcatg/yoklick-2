@@ -1,26 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import DodoPayments from "dodopayments";
 import { rateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
-import { getDodoConfig, getDodoClient } from "@/app/lib/dodoConfig";
-import { getProductConfig } from "@/app/lib/productConfig";
+
+const DODO_API_KEY = process.env.DODO_API_KEY;
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting
-  const rateLimitResult = rateLimit(req, 'api');
+  const rateLimitResult = rateLimit(req, 'subscription');
   if (!rateLimitResult.allowed) {
     return rateLimitResult.response;
   }
 
   try {
-    // Get Dodo Payments configuration
-    let dodoConfig;
-    try {
-      dodoConfig = getDodoConfig();
-    } catch (error: any) {
-      console.error("Dodo Payments configuration error:", error.message);
+    // Check if Dodo Payments is configured
+    if (!DODO_API_KEY) {
       return NextResponse.json({ 
-        error: "Dodo Payments not configured properly",
-        details: error.message
+        error: "Dodo Payments not configured. Please set up your DODO_API_KEY environment variable.",
+        details: "Payment system is not configured yet"
       }, { status: 503 });
     }
 
@@ -43,26 +40,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 401 });
     }
 
-    const { planType, billingCycle = 'monthly' } = await req.json();
+    const { productId, planType } = await req.json();
 
-    if (!planType) {
-      return NextResponse.json({ error: "Plan type is required" }, { status: 400 });
-    }
-
-    // Get product configuration
-    let productConfig;
-    try {
-      productConfig = getProductConfig(planType, billingCycle);
-    } catch (error: any) {
-      console.error("Product configuration error:", error.message);
-      return NextResponse.json({ 
-        error: "Invalid plan configuration",
-        details: error.message
-      }, { status: 400 });
+    if (!productId || !planType) {
+      return NextResponse.json({ error: "Product ID and plan type are required" }, { status: 400 });
     }
 
     // Initialize Dodo Payments client
-    const client = getDodoClient();
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const environment = isDevelopment ? 'test_mode' : 'live_mode';
+    
+    const client = new DodoPayments({
+      bearerToken: DODO_API_KEY,
+      environment: environment,
+    });
 
     try {
       // Create or get customer first
@@ -87,7 +78,7 @@ export async function POST(req: NextRequest) {
       // Create subscription using the official SDK
       const subscription = await client.subscriptions.create({
         customer: { customer_id: customerId },
-        product_id: productConfig.productId,
+        product_id: productId,
         quantity: 1,
         billing: {
           city: "Default City",
@@ -139,11 +130,12 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      // Generate Dodo Payments checkout URL
-      const dodoCheckoutUrl = `${dodoConfig.checkoutBaseUrl}/buy/${productConfig.productId}?quantity=1&redirect_url=${encodeURIComponent('https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=' + subscription.subscription_id)}`;
+      // Generate Dodo Payments checkout URL (test vs live)
+      const checkoutBaseUrl = isDevelopment ? 'https://test.checkout.dodopayments.com' : 'https://checkout.dodopayments.com';
+      const dodoCheckoutUrl = `${checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent('https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=' + subscription.subscription_id)}`;
 
       // Add rate limit headers to response
-      const headers = getRateLimitHeaders(authHeader, 'api');
+      const headers = getRateLimitHeaders(authHeader, 'subscription');
 
       return NextResponse.json({
         success: true,
@@ -152,15 +144,21 @@ export async function POST(req: NextRequest) {
       }, { headers });
 
     } catch (error: any) {
-      console.error("Dodo Payments API error:", error);
-      return NextResponse.json({ 
-        error: "Dodo Payments API error",
-        details: {
-          status: error.status || 500,
-          name: error.name || "Error",
-          message: error.message || "Unknown error"
-        }
-      }, { status: error.status || 500 });
+      if (error instanceof DodoPayments.APIError) {
+        return NextResponse.json({ 
+          error: "Dodo Payments API error",
+          details: {
+            status: error.status,
+            name: error.name,
+            message: error.message
+          }
+        }, { status: error.status || 500 });
+      } else {
+        return NextResponse.json({ 
+          error: "Failed to create subscription",
+          details: error instanceof Error ? error.message : "Unknown error"
+        }, { status: 500 });
+      }
     }
 
   } catch (error) {
