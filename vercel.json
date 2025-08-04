@@ -9,5 +9,8 @@
     "src/app/api/cron/daily-maintenance/route.ts": {
       "maxDuration": 120
     }
-  }
+  },
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "framework": "nextjs"
 } 

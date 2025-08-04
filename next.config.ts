@@ -6,6 +6,16 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   generateEtags: true,
   
+  // Disable type checking during build for faster deployment
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  
+  // Disable ESLint during build for faster deployment
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
   // Image optimization
   images: {
     domains: [

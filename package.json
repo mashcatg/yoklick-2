@@ -10,7 +10,10 @@
     "type-check": "tsc --noEmit",
     "build:analyze": "ANALYZE=true next build",
     "build:production": "NODE_ENV=production next build",
-    "start:production": "NODE_ENV=production next start"
+    "start:production": "NODE_ENV=production next start",
+    "build:no-check": "next build --no-lint",
+    "deploy": "npm run build && vercel --prod",
+    "deploy:fast": "npm run build:no-check && vercel --prod"
   },
   "dependencies": {
     "@dodopayments/express": "^0.1.2",

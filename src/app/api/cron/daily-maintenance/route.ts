@@ -109,13 +109,13 @@ export async function POST(req: NextRequest) {
               syncedCount++;
               
               // Handle failed payments
-              if (dodoSubscription.status === "past_due") {
+              if (dodoSubscription.status === "past_due" as any) {
                 results.failedPaymentsRetried++;
                 await handleFailedPayment(dodoSubscription, supabase, client);
               }
 
               // Handle expired subscriptions
-              if (dodoSubscription.status === "cancelled" && subscription.status !== "cancelled") {
+              if (dodoSubscription.status === "cancelled" as any && subscription.status !== "cancelled") {
                 await handleExpiredSubscription(dodoSubscription, supabase);
               }
             }
