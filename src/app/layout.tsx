@@ -8,7 +8,7 @@ import { PaymentProvider } from "@/app/context/PaymentContext";
 import { GenerationProvider } from "@/app/context/GenerationContext";
 import GlobalLoader from "./components/GlobalLoader";
 import Footer from "./components/Footer";
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 export const metadata = {
   title: "yoklick | AI Thumbnail Generator - Create Viral YouTube Thumbnails",
   description: "Transform your YouTube titles into viral thumbnails with yoklick's AI-powered generator. Create stunning, high-conversion thumbnails in seconds. No design skills required.",
@@ -156,6 +156,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <AuthSync />
                   {children}
                   <Footer />
+                  <SpeedInsights />
                 </ThemeProvider>
               </GenerationProvider>
             </PaymentProvider>
