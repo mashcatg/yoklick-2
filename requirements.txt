@@ -1,0 +1,1021 @@
+Project Name: Yoklick – AI YouTube Thumbnail Generator
+
+Core Features:
+There will be no landing page for the product
+Thumbnail Generation System:
+
+
+User enters a short topic into a prompt box
+
+
+Text position selector (dropdown: Top Left, Top Center, Top Right, Bottom Left, Bottom Center, Bottom Right, No Text)
+
+
+Public/Private toggle for each generation
+
+
+Each generation = 4 thumbnails, 1280x720, powered by: 
+
+
+DeepSeek: generates 4 high-quality prompts
+
+
+Nebius AI (Flux Dev model): returns 4 images per click
+
+
+Each generation consumes 4 credits
+
+
+System prompt ensures: no watermarks, no haram content, or living beings
+
+
+
+Authentication & Accounts:
+Supabase backend
+
+
+Google OAuth login
+
+
+Email & password signin/signup 
+
+
+Profile Page with:
+
+
+Editable user info
+
+
+Transaction & credit usage history
+
+
+Change password, delete account, etc.
+
+
+
+App Pages:
+Home Page
+
+
+Large headline banner text
+
+
+Centered prompt input bot UI
+
+
+Below it: 12 random public & featured generations (if I am not logged in or not having more than 1 generation) else show 4 my thumbnails and 8 public & featured thumbnails + a search bar
+
+
+"View More" button → Explore page
+on generate -> My 4 will be gone and showing a blur skeleton effect with a fake loading donut bar(takes 30s to make 100% and it should not looking like scripted) 
+
+
+Explore Page
+same Prompt box at the top 
+
+
+Infinite scroll of all public (featured or not featured) generations (random order(image based not generation-based)) + tagged filters + search bar
+
+
+
+
+My Generations Page
+
+
+same Prompt box at the top 
+
+
+Infinite scroll of all personal generations (private & public)
+filter
+search 
+
+
+Profile Page
+
+
+Personal info showing page 
+
+
+Edit profile + change dp (no email update available) + change [ass 
+
+
+Subscription status & history
+
+
+Transaction history (includes credit history)
+prompt box
+a box like the gpt prompt box having privet/public switcher of shadcn instead of attachment icon and instead of tools need a select 'Text Position' dropdown selectbox. also mic and submit btn will remain same 
+one thumbnail card will have :
+copy prompt, regenerate, download, share, expand, user dp, name and time (on hover show)
+If I click on the card a full screen modal will appear which will be connected with /view/[id]
+multiple: bulk select and share, download 
+card fetches with blurry skeleton effect perfectly like other AI image generators
+thumbnail card will be same for all the pages 
+a feedback dialog box (in desktop and laptop and becomes drawer in the mobile) having a input box and a submit button(only logged in user can use)
+a pricing page
+need a sidebar and a topbar in the whole layout (in every pages) also the sidebar will become the bottom bar in mobile devices. the icons will be bg primary/50 and text primary (only icons will have active and hover effect. not text). sidebar will be a small in width bar (titles will be written small bottom of the icon)
+
+
+
+ UI & UX:
+Modern, clean design (light/dark theme toggle)
+
+
+Responsive & mobile-friendly
+
+
+Smooth skeleton loading during fetches in every page 
+
+
+Toasts/feedback messages for generation status, errors, payments, etc.
+
+
+Feedback form integrated into the app 
+
+
+
+Payments via Dodo Payments:
+Credits-Based Subscription System
+
+
+1 generation (4 thumbnails) = 4 credits
+
+
+Monthly:
+Starter: $9.89 → 40 credits
+
+
+Creator: $18.89 → 100 credits
+
+
+Pro: $38.89 → 300 credits
+
+
+Yearly (30% OFF):
+Starter: $83 → 40 credits/month
+
+
+Creator: $158 → 100 credits/month
+
+
+Pro: $326 → 300 credits/month
+
+
+Auto credit refill monthly
+
+
+Track credit usage in the profile
+dodo payment product name and id: 
+
+
+
+
+
+
+Starter: pdt_PoCX9Im2AUmxotnYx9ydm
+Started (yearly 30% off): pdt_RJ7OspzeWRD3XV0bqQJSn
+Creator: pdt_nzFFbBbSBVopc9gvAwGic
+Creator (30% Off):pdt_0MtQNcWe0trsg2IWtMLtx
+pro: pdt_DNbzGIiBdpqiKlrWLOj6q
+Pro (30% Off): pdt_xchUmeCCUGlTCXmg7IkAP
+
+
+
+
+ AI Integration:
+System Prompt (for DeepSeek):
+Assume that you a thumbnail idea generator and you generate high-quality, unique YouTube thumbnail idea (1280x720) in one paragraph, ensuring each design has a distinct theme and visual style. The topic of the thumbnail should be bold and highly readable, using a randomly chosen thumbnail suitable position and font style such as sleek modern typography, futuristic neon text, vintage serif, bold graffiti, elegant calligraphy, or embossed metallic lettering. The background should always be different and theme-matching, cycling between cinematic landscapes, futuristic cityscapes, tech-inspired holographic visuals, vintage paper textures, dramatic lighting effects, minimalistic gradients, high-contrast infographics, grunge textures, or playful 2D flat designs. The color palette should be adaptive, sometimes using vibrant neon contrasts, deep cinematic tones, pastel soft shades, monochrome elegance, or warm golden hues to complement the theme. The thumbnail should feature a strong focal element, such as a symbolic object, eye-catching icon, dramatic perspective, 3D effects, or a bold frame composition to enhance visual storytelling. The response must always avoid watermarks, haram elements, and living beings while maintaining a professional, high-conversion click-through design. Each response should be fully unique, optimized for engagement, and ready for use as a premium-quality YouTube thumbnail. ALso the generated output should be in a para of 1024 characters
+
+Here is an example of a correct answer that is expected from you as an AI assistant:
+
+User: Write a in details eye-catching prompt for a thumbnail on 'My Journey at Google as a software engineer'
+
+AI Assistant: Create a YouTube thumbnail with a modern and professional design. The background should feature a futuristic tech theme, with a sleek office workspace, soft blue lighting, and a subtle Google-inspired color palette (red, blue, yellow, green). Add a Google logo (small and non-intrusive) in a corner. Display the text 'My Journey at Google' in bold, white & blue gradient, and 'as a Software Engineer' in a clean, modern yellow font below. Use a stylish code-themed overlay with abstract programming syntax, giving a dynamic and high-tech look. The overall design should be minimalist yet engaging, with sharp contrast for readability. No living beings or watermarks—just pure, clean design with an inspiring tech aesthetic.
+
+Here is an example of a correct answer that is expected from you as an AI assistant:
+
+User: Write a in details eye-catching prompt for a thumbnail on 'wifi in village with a ultra light plane'
+
+AI Assistant: 'Create a YouTube thumbnail featuring a breathtaking rural landscape with lush green fields, small houses, and a clear blue sky. In the foreground, depict a sleek ultra-light plane soaring low, symbolizing connectivity. Add WiFi signal waves emitting from a modern communication tower near the village, visually representing internet access. Use bold, high-contrast text like 'Superfast WiFi in Villages!' in yellow & white, with a modern, tech-inspired font. Apply vibrant colors, subtle gradients, and a cinematic glow for an eye-catching effect. Ensure a clean, watermark-free, and high-quality finish, making it ideal for YouTube engagement.'
+
+Here is an example of a correct answer that is expected from you as an AI assistant:
+
+User: Write a in details eye-catching prompt for a thumbnail on 'visit to dubai'
+
+AI Assistant: 'Create a stunning YouTube thumbnail for a video titled 'Visit to Dubai.' The background should feature an aerial view of Dubai's skyline, showcasing the Burj Khalifa, modern skyscrapers, and desert landscape in golden sunset lighting. On the right side, place a luxury car (Lamborghini or Rolls-Royce) on Sheikh Zayed Road with motion blur for a dynamic effect. On the left, leave a placeholder for 'A Human' (silhouetted or blurred to allow user upload). Bold, eye-catching text should read 'Dubai Like Never Before!' in a gold and white gradient, placed in the upper part with a slight 3D effect. Add subtle travel icons (airplane, location pin) for extra appeal. Ensure high contrast, vibrant colors, and a cinematic feel while keeping it clean and professional.'
+
+Here is an example of a correct answer that is expected from you as an AI assistant:
+
+User: Write a in details eye-catching prompt for a thumbnail on 'truth behind poverty of south asia'
+
+AI Assistant: 'Design a thought-provoking and impactful YouTube thumbnail for a video titled 'Truth Behind Poverty of South Asia.' The background should feature a cinematic depiction of a bustling yet impoverished South Asian street, with vibrant yet worn-down market stalls, crowded streets, and a mix of traditional and modern elements. Use a warm, earthy color palette with golden hues and muted tones to evoke authenticity and depth. The title 'Truth Behind Poverty of South Asia' should be written in bold, vintage serif font with a distressed texture, positioned prominently at the top center in white and gold for contrast. Add a 3D rendering of a broken chain or a symbolic empty bowl as the focal element, placed dynamically in the foreground to represent struggle and resilience. Include subtle dramatic lighting effects to highlight key elements and create a compelling visual narrative. Ensure the design is clean, professional, and free of watermarks or haram/living elements, optimized for high engagement and click-through appeal.'
+
+Here is an example of a correct answer that is expected from you as an AI assistant:
+
+User: Write a in details eye-catching prompt for a thumbnail on 'the tsunami of the japan'
+
+AI Assistant: 'Create a dramatic and impactful YouTube thumbnail for a video titled 'The Tsunami of Japan.' The background should feature a cinematic depiction of a massive tsunami wave crashing into a coastal city, with towering skyscrapers partially submerged and debris swirling in the water. Use deep cinematic tones of blue and gray to evoke intensity and urgency. The title 'The Tsunami of Japan' should be written in bold, white, and red embossed metallic lettering, positioned at the top center for maximum visibility. Add a 3D rendering of a glowing warning sign or a wave icon as the focal element, placed prominently in the foreground to enhance visual storytelling. Include subtle motion blur effects on the wave and debris for a dynamic, high-energy feel. The color palette should combine dark, moody tones with vibrant red accents for contrast. Ensure the design is clean, professional, and free of watermarks or haram/living elements, optimized for high engagement and click-through appeal.'
+
+Here is an example of a correct answer that is expected from you as an AI assistant:
+
+User: Write a in details eye-catching prompt for a thumbnail on 'the industrial revolution'
+
+AI Assistant: 'Design a bold and impactful YouTube thumbnail for a video titled 'The Industrial Revolution.' The background should feature a dramatic cinematic scene of a 19th-century factory with towering smokestacks, steam engines, and workers in silhouette, set against a moody, sepia-toned sky. The title 'The Industrial Revolution' should be written in vintage serif font with a distressed metallic texture, positioned prominently at the top center for maximum visibility. Add a 3D rendering of a large, intricate gear wheel as the focal element, symbolizing innovation and machinery, placed dynamically in the foreground. The color palette combines deep sepia tones with metallic silver and bronze accents for a historical, industrial feel. A subtle placeholder text 'for a man' is placed in the bottom right corner, using minimalist white font for balance. This design is optimized for high engagement, blending historical significance and industrial aesthetics with a bold, professional look, free from watermarks and haram/living elements.'
+
+Here is an example of a correct answer that is expected from you as an AI assistant:
+
+User: Write a in details eye-catching prompt for a thumbnail on 'mistry behind bermuda triangle'
+
+AI Assistant: 'Design a mysterious and captivating YouTube thumbnail for a video titled 'Mystery Behind Bermuda Triangle.' The background should feature a cinematic underwater scene with swirling ocean currents, a glowing triangle, and a sunken ship silhouette, all bathed in deep, moody tones of navy blue and emerald green. The title 'Mystery Behind Bermuda Triangle' should be written in bold, futuristic neon text with a glowing cyan and purple gradient, positioned diagonally across the center for a dynamic effect. Add a 3D rendering of a dramatic vortex at the center, pulling in abstract geometric shapes and glowing particles to symbolize the triangle's enigmatic pull. The color palette combines deep cinematic tones with vibrant neon contrasts for a mysterious and engaging vibe. A subtle placeholder text 'for a man' is placed in the bottom right corner, using minimalist white font for balance. This design is optimized for high engagement, blending intrigue and mystery with a bold, professional aesthetic, free from watermarks and haram/living elements.'
+
+Here is an example of a correct answer that is expected from you as an AI assistant:
+
+User: Write a in details eye-catching prompt for a thumbnail on 'Best 5 open world games'
+
+AI Assistant: 'Create an immersive and captivating YouTube thumbnail for a video titled 'Best 5 Open World Games.' The background should feature a cinematic collage of iconic open-world game landscapes, including lush forests, futuristic cities, and vast deserts, blending seamlessly into a dramatic sunset sky. The title 'Best 5 Open World Games' should be written in bold, embossed metallic lettering with a gold and white gradient, positioned prominently at the top center for maximum impact. Add a 3D rendering of a glowing game controller surrounded by floating icons of popular open-world games (like a sword, car, and map), placed dynamically in the foreground to symbolize exploration and adventure. The color palette combines deep cinematic tones with vibrant neon accents for a modern, high-energy vibe. A subtle placeholder text 'for a man' is placed in the bottom right corner, using minimalist white font for balance. This design is optimized for high engagement, blending excitement and creativity with a bold, professional aesthetic, free from watermarks and haram/living elements.
+
+
+
+
+API Details:
+Deepseek API: sk-74e5c86f2d5f4a768616d46d583f4b31
+Supabase anon key:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuamZhanBmZW5wZXV0YWhrZG9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzMDg3NDIsImV4cCI6MjA2ODg4NDc0Mn0.RzHui43MHkED3CnvRnTLvMZ9zRHI40d3EVgStw8qcyU 
+Supabase URL:https://vnjfajpfenpeutahkdom.supabase.co
+define('NEBIUS_API_KEY', 'eyJhbGciOiJIUzI1NiIsImtpZCI6IlV6SXJWd1h0dnprLVRvdzlLZWstc0M1akptWXBvX1VaVkxUZlpnMDRlOFUiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJnb29nbGUtb2F1dGgyfDEwNDk2MDIxODk0MTAyMDU0OTA2NCIsInNjb3BlIjoib3BlbmlkIG9mZmxpbmVfYWNjZXNzIiwiaXNzIjoiYXBpX2tleV9pc3N1ZXIiLCJhdWQiOlsiaHR0cHM6Ly9uZWJpdXMtaW5mZXJlbmNlLmV1LmF1dGgwLmNvbS9hcGkvdjIvIl0sImV4cCI6MTg5OTE4MjkwNiwidXVpZCI6IjU1NDBmYThiLWEwMzUtNGIyMy1hZDMzLWFlY2E2NGE0ZDc2NyIsIm5hbWUiOiJ5b2tsaWNrIiwiZXhwaXJlc19hdCI6IjIwMzAtMDMtMDhUMDY6NDg6MjYrMDAwMCJ9.oy_dm4hiM0jAAUV7uxOuF8lnn1pl2bFTlXCch1nPqak');
+$baseUrl = 'https://api.studio.nebius.com';
+$endpoint = $baseUrl . '/v1/chat/completions';
+
+$model = 'black-forest-labs/flux-dev';
+$prompt = $promptFromDeepSeek;
+$n = 1;
+$width = 1280;
+$height = 720;
+
+
+
+Global css
+npx shadcn@latest add https://tweakcn.com/r/themes/cmd2usx4k000g04lcghrlc558:root {
+  --background: #ffffff;
+  --foreground: #333333;
+  --card: #ffffff;
+  --card-foreground: #333333;
+  --popover: #ffffff;
+  --popover-foreground: #333333;
+  --primary: #2e7dff;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #4b5563;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --accent: #e0f2fe;
+  --accent-foreground: #1e3a8a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #3b82f6;
+  --chart-1: #3b82f6;
+  --chart-2: #2563eb;
+  --chart-3: #1d4ed8;
+  --chart-4: #1e40af;
+  --chart-5: #1e3a8a;
+  --sidebar: #f9fafb;
+  --sidebar-foreground: #333333;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e0f2fe;
+  --sidebar-accent-foreground: #1e3a8a;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #3b82f6;
+  --font-sans: Poppins, sans-serif;
+  --font-serif: Roboto, sans-serif;
+  --font-mono: JetBrains Mono, monospace;
+  --radius: 0.7rem;
+  --shadow-2xs: 0 1px 0px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 0px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0 1px 0px 0px hsl(0 0% 0% / 0.25);
+  --tracking-normal: -0.05em;
+  --spacing: 0.26rem;
+}
+
+.dark {
+  --background: #171717;
+  --foreground: #e5e5e5;
+  --card: #262626;
+  --card-foreground: #e5e5e5;
+  --popover: #262626;
+  --popover-foreground: #e5e5e5;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #262626;
+  --secondary-foreground: #e5e5e5;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --accent: #1e3a8a;
+  --accent-foreground: #bfdbfe;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #404040;
+  --input: #404040;
+  --ring: #3b82f6;
+  --chart-1: #60a5fa;
+  --chart-2: #3b82f6;
+  --chart-3: #2563eb;
+  --chart-4: #1d4ed8;
+  --chart-5: #1e40af;
+  --sidebar: #171717;
+  --sidebar-foreground: #e5e5e5;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e3a8a;
+  --sidebar-accent-foreground: #bfdbfe;
+  --sidebar-border: #404040;
+  --sidebar-ring: #3b82f6;
+  --font-sans: Poppins, sans-serif;
+  --font-serif: Roboto, sans-serif;
+  --font-mono: JetBrains Mono, monospace;
+  --radius: 0.7rem;
+  --shadow-2xs: 0 1px 0px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 0px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0 1px 0px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0 1px 0px 0px hsl(0 0% 0% / 0.25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-normal: var(--tracking-normal);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+}
+
+body {
+  letter-spacing: var(--tracking-normal);
+}
+
+Supabase schema: // not recomended. please create as u want
+-- Table: thumbnails (each image = one row)
+create table if not exists thumbnails (
+  id bigserial primary key,
+  created_at timestamp with time zone default now(),
+  prompt text,
+  image_url text,
+  user_id uuid references auth.users(id) on delete cascade,
+  text_position text,
+  is_public boolean default false,
+  is_featured boolean default false,
+  group_id uuid
+);
+
+-- Table: users_meta (credits and plan info)
+create table if not exists users_meta (
+  id uuid primary key references auth.users(id) on delete cascade,
+  credits int default 0,
+  plan text default 'free', -- free, starter, pro, agency
+  is_yearly boolean default false,
+  created_at timestamp with time zone default now()
+);
+
+-- Table: transactions (payment log)
+create table if not exists transactions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  amount numeric not null,
+  credits int not null,
+  plan text,
+  is_yearly boolean,
+  payment_provider text default 'dodo',
+  created_at timestamp with time zone default now()
+);
+
+-- Table: feedback (user input)
+create table if not exists feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  message text not null,
+  created_at timestamp with time zone default now()
+);
+
+
+auth page ui inspiration:
+'use client'
+
+import React, { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
+
+const GoogleIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 48 48">
+    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s12-5.373 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-2.641-.21-5.236-.611-7.743z" />
+    <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+    <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.022 35.026 44 30.038 44 24c0-2.641-.21-5.236-.611-7.743z" />
+  </svg>
+)
+
+export interface Testimonial {
+  avatarSrc: string
+  name: string
+  handle: string
+  text: string
+}
+
+interface SignInPageProps {
+  title?: React.ReactNode
+  description?: React.ReactNode
+  heroImageSrc?: string
+  testimonials?: Testimonial[]
+  onSignIn?: (event: React.FormEvent<HTMLFormElement>) => void
+  onGoogleSignIn?: () => void
+  onResetPassword?: () => void
+  onCreateAccount?: () => void
+  submitButtonText?: string
+  googleButtonText?: string
+  createAccountText?: string
+  mode?: 'login' | 'register' | 'forgot'
+  hideGoogleButton?: boolean
+}
+
+const GlassInputWrapper = ({ children }: { children: React.ReactNode }) => (
+  <div className="rounded-2xl border border-border bg-foreground/5 backdrop-blur-sm transition-colors focus-within:border-primary/70 focus-within:bg-primary/10">
+    {children}
+  </div>
+)
+
+const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial; delay: string }) => (
+  <div className={`animate-testimonial ${delay} flex items-start gap-3 rounded-3xl bg-card/40 dark:bg-zinc-800/40 backdrop-blur-xl border border-white/10 p-5 w-64`}>
+    <img src={testimonial.avatarSrc} className="h-10 w-10 object-cover rounded-2xl" alt="avatar" />
+    <div className="text-sm leading-snug">
+      <p className="flex items-center gap-1 font-medium">{testimonial.name}</p>
+      <p className="text-muted-foreground">{testimonial.handle}</p>
+      <p className="mt-1 text-foreground/80">{testimonial.text}</p>
+    </div>
+  </div>
+)
+
+export const SignInPage: React.FC<SignInPageProps> = ({
+  title = <span className="font-light text-foreground tracking-tighter">Welcome</span>,
+  description = "Access your account and continue your journey with us",
+  heroImageSrc,
+  testimonials = [],
+  onSignIn,
+  onGoogleSignIn,
+  onResetPassword,
+  onCreateAccount,
+  submitButtonText = 'Sign In',
+  googleButtonText = 'Continue with Google',
+  createAccountText = 'Create Account',
+  mode = 'login',
+  hideGoogleButton = false,
+}) => {
+  const [showPassword, setShowPassword] = useState(false)
+
+  return (
+    <div className="h-[100dvh] flex flex-col md:flex-row font-geist w-full md:w-[100dvw]">
+      {/* Left column: sign-in form */}
+      <section className="flex-1 flex items-center justify-center p-4 md:p-8">
+        <div className="w-full max-w-md">
+          <div className="flex flex-col gap-6">
+            <h1 className="animate-element animate-delay-100 text-4xl md:text-5xl font-semibold leading-tight">{title}</h1>
+            <p className="animate-element animate-delay-200 text-muted-foreground">{description}</p>
+
+            <form className="space-y-5" onSubmit={onSignIn}>
+              <div className="animate-element animate-delay-300">
+                <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+                <GlassInputWrapper>
+                  <input name="email" type="email" placeholder="Enter your email address" className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none" />
+                </GlassInputWrapper>
+              </div>
+
+              {mode !== 'forgot' && (
+                <div className="animate-element animate-delay-400">
+                  <label className="text-sm font-medium text-muted-foreground">Password</label>
+                  <GlassInputWrapper>
+                    <div className="relative">
+                      <input name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none" />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center">
+                        {showPassword ? <EyeOff className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" /> : <Eye className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />}
+                      </button>
+                    </div>
+                  </GlassInputWrapper>
+                </div>
+              )}
+
+              {mode !== 'forgot' && (
+                <div className="animate-element animate-delay-500 flex items-center justify-between text-sm">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="rememberMe" className="custom-checkbox" />
+                    <span className="text-foreground/90">Keep me signed in</span>
+                  </label>
+                  {mode === 'login' && onResetPassword && (
+                    <a href="#" onClick={(e) => { e.preventDefault(); onResetPassword(); }} className="text-primary hover:underline transition-colors">
+                      Reset password
+                    </a>
+                  )}
+                </div>
+              )}
+
+              <button type="submit" className="animate-element animate-delay-600 w-full rounded-2xl bg-primary py-4 font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                {submitButtonText}
+              </button>
+            </form>
+
+            {!hideGoogleButton && (
+              <>
+                <div className="animate-element animate-delay-700 relative flex items-center justify-center">
+                  <span className="w-full border-t border-border"></span>
+                  <span className="px-4 text-sm text-muted-foreground bg-background absolute">Or continue with</span>
+                </div>
+
+                <button onClick={onGoogleSignIn} className="animate-element animate-delay-800 w-full flex items-center justify-center gap-3 border border-border rounded-2xl py-4 hover:bg-secondary transition-colors">
+                  <GoogleIcon />
+                  {googleButtonText}
+                </button>
+              </>
+            )}
+
+            {onCreateAccount && (
+              <p className="animate-element animate-delay-900 text-center text-sm text-muted-foreground">
+                {mode === 'login' ? 'New to our platform? ' : mode === 'register' ? 'Already have an account? ' : ''}
+                <a href="#" onClick={(e) => { e.preventDefault(); onCreateAccount(); }} className="text-primary hover:underline transition-colors">
+                  {createAccountText}
+                </a>
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Right column: hero image + testimonials */}
+      {heroImageSrc && (
+        <section className="hidden md:block flex-1 relative p-4">
+          <div className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl bg-cover bg-center" style={{ backgroundImage: `url(${heroImageSrc})` }}></div>
+          {testimonials.length > 0 && (
+            <div className="absolute bottom-[calc(0.5rem*8)] left-1/2 -translate-x-1/2 flex gap-4 px-8 w-full justify-center">
+              <TestimonialCard testimonial={testimonials[0]} delay="animate-delay-1000" />
+              {testimonials[1] && <div className="hidden xl:flex"><TestimonialCard testimonial={testimonials[1]} delay="animate-delay-1200" /></div>}
+              {testimonials[2] && <div className="hidden 2xl:flex"><TestimonialCard testimonial={testimonials[2]} delay="animate-delay-1400" /></div>}
+            </div>
+          )}
+        </section>
+      )}
+    </div>
+  )
+}
+layout of side and top and main:
+side:"use client"
+
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Home, Compass, Sparkles, User, Zap } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+
+// Helper function to get initials from name
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map(n => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+const nav = [
+  { href: "/", label: "Home", Icon: Home },
+  { href: "/explore", label: "Explore", Icon: Compass },
+  { href: "/generations", label: "My Collections", Icon: Sparkles },
+  { href: "/profile", label: "Profile", Icon: User },
+]
+
+export default function SideBar({ className = "" }: { className?: string }) {
+  const pathname = usePathname()
+  const [credits, setCredits] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCredits = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setIsLoading(false)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('user_credits')
+        .select('balance')
+        .eq('user_id', session.user.id)
+        .single()
+
+      if (!error && data) {
+        setCredits(data.balance)
+      }
+      setIsLoading(false)
+
+      // Subscribe to credits changes
+      const channel = supabase
+        .channel('credits')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'user_credits',
+          filter: `user_id=eq.${session.user.id}`
+        }, () => {
+          fetchCredits()
+        })
+        .subscribe()
+
+      return () => {
+        channel.unsubscribe()
+      }
+    }
+
+    fetchCredits()
+  }, [])
+
+  if (isLoading) {
+    return <div className="bg-muted/50 rounded-lg p-3 animate-pulse h-8" />
+  }
+  
+  const isActive = (href: string) => pathname === href
+
+  return (
+    <aside
+      className={`w-16 fixed min-h-[calc(100vh-4rem)] dark:bg-[#303030] mx-2 flex flex-col items-center py-4 z-50 ${className}`}
+    >
+      <div className="flex flex-col items-center gap-3">
+        {nav.map(({ href, label, Icon }) => {
+          const active = isActive(href)
+          return (
+            <Link key={href} href={href} className="group flex flex-col items-center gap-1 px-3 py-1">
+              <div className={`p-2 mb-0 ${
+                  active
+                    ? "text-primary bg-primary/10 rounded-[10px]"
+                    : "group-hover:text-primary group-hover:bg-primary/10 group-hover:rounded-[10px]"
+                }`}>
+                <Icon
+                  size={22}
+                  strokeWidth={1.8}
+                  className={`transition-colors`}
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground leading-none text-center">
+                {label}
+              </span>
+            </Link>
+          )
+        })}
+
+      </div>
+
+      {/* Footer (User Section) */}
+      <div className="mt-auto flex flex-col items-center gap-4 mb-2">
+        {/* Credits Link */}
+            <Link
+              href="/credits"
+              className="group flex flex-col items-center gap-1 px-3 py-1 text-primary bg-primary/10 rounded-[10px]"
+            ><div className={`p-2 mb-2`}>
+              <Zap
+                size={22}
+                strokeWidth={1.8}
+              className={`transition-colors`}
+            />
+            </div>
+            <p>{credits || 0}</p>
+              <span className="text-[10px] text-muted-foreground leading-none text-center text-primary pb-2">
+                Credits
+              </span>
+            </Link>
+            
+        
+      </div>
+    </aside>
+  )
+}
+bottom:// components/bottom-bar.tsx
+import Link from "next/link"
+import { Home, Compass, Sparkles, User } from "lucide-react"
+
+const nav = [
+  { href: "/", label: "Home", Icon: Home },
+  { href: "/explore", label: "Explore", Icon: Compass },
+  { href: "/generations", label: "My Generations", Icon: Sparkles },
+  { href: "/profile", label: "Profile", Icon: User },
+]
+
+export default function BottomBar({ className = "" }: { className?: string }) {
+  return (
+    <nav className={`fixed bottom-0 inset-x-0 h-14 bg-white dark:bg-[#303030] border-t flex justify-around items-center lg:hidden ${className}`}>
+      {nav.map(({ href, label, Icon }) => (
+        <Link
+          key={href}
+          href={href}
+          className="group flex flex-col items-center gap-[2px] text-muted-foreground hover:text-primary"
+        >
+          <Icon size={22} strokeWidth={1.8} />
+          <span className="text-[10px] leading-none">{label}</span>
+        </Link>
+      ))}
+    </nav>
+  )
+}
+layout:
+import "@/styles/globals.css"
+import { Inter } from "next/font/google"
+import { Providers } from "@/components/providers"
+import Sidebar from "@/components/sidebar"
+import BottomBar from "@/components/bottom-bar"
+import TopBar from "@/components/top-bar"
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata = {
+  title: 'Yoklick | AI Thumbnail Generator',
+  description: `Yoklick is the world's smartest AI thumbnail generator, built to help content creators design eye-catching thumbnails for videos, blogs, podcasts, and more — in seconds.
+
+Developed by Mashraf Aiman and Istiaque Zaman under Ennovat, Yoklick combines the power of AI with beautiful design to help you stand out and grow faster.
+
+Whether you're a YouTuber, blogger, or marketer, Yoklick saves time, boosts engagement, and ensures every thumbnail is scroll-stopping and brand-ready.`,
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={`bg-background overflow-hidden text-foreground ${inter.className}`}>
+        <Providers>
+          {/* Page Layout: topbar full width, sidebar + content side by side */}
+          <div className="flex flex-col min-h-screen">
+            {/* Top Bar: Full width at top */}
+            <TopBar />
+
+            {/* Content Area: Sidebar + Page Content */}
+            <div className="flex flex-1">
+              {/* Sidebar: fixed width */}
+              <Sidebar className="hidden lg:flex" />
+
+              {/* Main content: pushes right of sidebar, fills remaining space */}
+                <div className="flex flex-1 bg-[#cccccc1f] dark:bg-[#303030] pr-4 xs:pl-4 md:pl-0 overflow-auto">
+                <main className="flex-1 p-4 ml-0 lg:ml-20 rounded-3xl bg-white dark:bg-[#171717]">
+                  {children}
+                </main>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom bar for mobile */}
+          <BottomBar className="lg:hidden" />
+        </Providers>
+      </body>
+    </html>
+  )
+}
+
+promptbox ui inspiration:
+// component.tsx
+import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import * as PopoverPrimitive from "@radix-ui/react-popover";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+
+// --- Utility Function & Radix Primitives (Unchanged) ---
+type ClassValue = string | number | boolean | null | undefined;
+function cn(...inputs: ClassValue[]): string { return inputs.filter(Boolean).join(" "); }
+const TooltipProvider = TooltipPrimitive.Provider;
+const Tooltip = TooltipPrimitive.Root;
+const TooltipTrigger = TooltipPrimitive.Trigger;
+const TooltipContent = React.forwardRef<React.ElementRef<typeof TooltipPrimitive.Content>, React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & { showArrow?: boolean }>(({ className, sideOffset = 4, showArrow = false, ...props }, ref) => ( <TooltipPrimitive.Portal><TooltipPrimitive.Content ref={ref} sideOffset={sideOffset} className={cn("relative z-50 max-w-[280px] rounded-md bg-popover text-popover-foreground px-1.5 py-1 text-xs animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", className)} {...props}>{props.children}{showArrow && <TooltipPrimitive.Arrow className="-my-px fill-popover" />}</TooltipPrimitive.Content></TooltipPrimitive.Portal>));
+TooltipContent.displayName = TooltipPrimitive.Content.displayName;
+const Popover = PopoverPrimitive.Root;
+const PopoverTrigger = PopoverPrimitive.Trigger;
+const PopoverContent = React.forwardRef<React.ElementRef<typeof PopoverPrimitive.Content>, React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>>(({ className, align = "center", sideOffset = 4, ...props }, ref) => ( <PopoverPrimitive.Portal><PopoverPrimitive.Content ref={ref} align={align} sideOffset={sideOffset} className={cn("z-50 w-64 rounded-xl bg-popover dark:bg-[#303030] p-2 text-popover-foreground dark:text-white shadow-md outline-none animate-in data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", className)} {...props} /></PopoverPrimitive.Portal>));
+PopoverContent.displayName = PopoverPrimitive.Content.displayName;
+const Dialog = DialogPrimitive.Root;
+const DialogPortal = DialogPrimitive.Portal;
+const DialogTrigger = DialogPrimitive.Trigger;
+const DialogOverlay = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Overlay>, React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>>(({ className, ...props }, ref) => ( <DialogPrimitive.Overlay ref={ref} className={cn("fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className)} {...props} />));
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>>(({ className, children, ...props }, ref) => ( <DialogPortal><DialogOverlay /><DialogPrimitive.Content ref={ref} className={cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-[90vw] md:max-w-[800px] translate-x-[-50%] translate-y-[-50%] gap-4 border-none bg-transparent p-0 shadow-none duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95", className)} {...props}><div className="relative bg-card dark:bg-[#303030] rounded-[28px] overflow-hidden shadow-2xl p-1">{children}<DialogPrimitive.Close className="absolute right-3 top-3 z-10 rounded-full bg-background/50 dark:bg-[#303030] p-1 hover:bg-accent dark:hover:bg-[#515151] transition-all"><XIcon className="h-5 w-5 text-muted-foreground dark:text-gray-200 hover:text-foreground dark:hover:text-white" /><span className="sr-only">Close</span></DialogPrimitive.Close></div></DialogPrimitive.Content></DialogPortal>));
+DialogContent.displayName = DialogPrimitive.Content.displayName;
+
+// --- SVG Icon Components ---
+const PlusIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}> <path d="M12 5V19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/> <path d="M5 12H19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/> </svg> );
+const Settings2Icon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}> <path d="M20 7h-9" /> <path d="M14 17H5" /> <circle cx="17" cy="17" r="3" /> <circle cx="7" cy="7" r="3" /> </svg> );
+const SendIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}> <path d="M12 5.25L12 18.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /> <path d="M18.75 12L12 5.25L5.25 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /> </svg> );
+const XIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}> <line x1="18" y1="6" x2="6" y2="18" /> <line x1="6" y1="6" x2="18" y2="18" /> </svg> );
+const GlobeIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>);
+const PencilIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>);
+const PaintBrushIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg viewBox="0 0 512 512" fill="currentColor" {...props}> <g> <path d="M141.176,324.641l25.323,17.833c7.788,5.492,17.501,7.537,26.85,5.67c9.35-1.877,17.518-7.514,22.597-15.569l22.985-36.556l-78.377-55.222l-26.681,33.96c-5.887,7.489-8.443,17.081-7.076,26.511C128.188,310.69,133.388,319.158,141.176,324.641z"/> <path d="M384.289,64.9c9.527-15.14,5.524-35.06-9.083-45.355l-0.194-0.129c-14.615-10.296-34.728-7.344-45.776,6.705L170.041,228.722l77.067,54.292L384.289,64.9z"/> <path d="M504.745,445.939c-4.011,0-7.254,3.251-7.254,7.262s3.243,7.246,7.254,7.246c4.012,0,7.255-3.235,7.255-7.246S508.757,445.939,504.745,445.939z"/> <path d="M457.425,432.594c3.914,0,7.092-3.179,7.092-7.101c0-3.898-3.178-7.077-7.092-7.077c-3.915,0-7.093,3.178-7.093,7.077C450.332,429.415,453.51,432.594,457.425,432.594z"/> <path d="M164.493,440.972c14.671-20.817,16.951-48.064,5.969-71.089l-0.462-0.97l-54.898-38.675l-1.059-0.105c-25.379-2.596-50.256,8.726-64.928,29.552c-13.91,19.742-18.965,41.288-23.858,62.113c-3.333,14.218-6.778,28.929-13.037,43.05c-5.168,11.695-8.63,15.868-8.654,15.884L0,484.759l4.852,2.346c22.613,10.902,53.152,12.406,83.779,4.156C120.812,482.584,147.76,464.717,164.493,440.972z M136.146,446.504c-0.849,0.567-1.714,1.19-2.629,1.892c-10.06,7.91-23.17,4.505-15.188-11.54c7.966-16.054-6.09-21.198-17.502-10.652c-14.323,13.232-21.044,2.669-18.391-4.634c2.636-7.304,12.155-17.267,4.189-23.704c-4.788-3.882-10.967,1.795-20.833,9.486c-5.645,4.392-18.666,2.968-13.393-16.563c2.863-7.271,6.389-14.275,11.104-20.971c10.24-14.542,27.603-23.083,45.404-22.403l47.021,33.11c6.632,16.548,4.416,35.764-5.823,50.305C146.167,436.411,141.476,441.676,136.146,446.504z"/> <path d="M471.764,441.992H339.549c-0.227-0.477-0.38-1.003-0.38-1.57c0-0.913,0.372-1.73,0.93-2.378h81.531c5.848,0,10.578-4.723,10.578-10.578c0-5.84-4.73-10.571-10.578-10.571H197.765c0.308,15.399-4.116,30.79-13.271,43.786c-11.218,15.925-27.214,28.913-46.196,38.036h303.802c6.551,0,11.864-5.314,11.864-11.872c0-6.559-5.314-11.873-11.864-11.873h-55.392c-3.299,0-5.977-2.668-5.977-5.968c0-1.246,0.47-2.313,1.1-3.267h89.934c6.559,0,11.881-5.305,11.881-11.873C483.645,447.306,478.323,441.992,471.764,441.992z"/> </g> </svg> );
+const TelescopeIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg viewBox="0 0 512 512" fill="currentColor" {...props}> <g> <path d="M452.425,202.575l-38.269-23.11c-1.266-10.321-5.924-18.596-13.711-21.947l-86.843-52.444l-0.275,0.598c-3.571-7.653-9.014-13.553-16.212-16.668L166.929,10.412l-0.236,0.543v-0.016c-3.453-2.856-7.347-5.239-11.594-7.08C82.569-10.435,40.76,14.5,21.516,59.203C2.275,103.827,12.82,151.417,45.142,165.36c4.256,1.826,8.669,3.005,13.106,3.556l-0.19,0.464l146.548,40.669c7.19,3.107,15.206,3.004,23.229,0.37l-0.236,0.566L365.55,238.5c7.819,3.366,17.094,1.125,25.502-5.082l42.957,11.909c7.67,3.312,18.014-3.548,23.104-15.362C462.202,218.158,460.11,205.894,452.425,202.575z M154.516,99.56c-11.792,27.374-31.402,43.783-47.19,49.132c-6.962,2.281-13.176,2.556-17.605,0.637c-14.536-6.254-25.235-41.856-8.252-81.243c16.976-39.378,50.186-56.055,64.723-49.785c4.429,1.904,8.519,6.592,11.626,13.246C164.774,46.699,166.3,72.216,154.516,99.56z"/> <path d="M297.068,325.878c-1.959-2.706-2.25-6.269-0.724-9.25c1.518-2.981,4.562-4.846,7.913-4.846h4.468c4.909,0,8.889-3.972,8.889-8.897v-7.74c0-4.909-3.98-8.897-8.889-8.897h-85.789c-4.908,0-8.897,3.988-8.897,8.897v7.74c0,4.925,3.989,8.897,8.897,8.897h4.492c3.344,0,6.388,1.865,7.914,4.846c1.518,2.981,1.235,6.544-0.732,9.25L128.715,459.116c-3.225,4.287-2.352,10.36,1.927,13.569c4.295,3.225,10.368,2.344,13.578-1.943l107.884-122.17l4.036,153.738c0,5.333,4.342,9.691,9.691,9.691c5.358,0,9.692-4.358,9.692-9.691l4.043-153.738l107.885,122.17c3.209,4.287,9.282,5.168,13.568,1.943c4.288-3.209,5.145-9.282,1.951-13.569L297.068,325.878z"/> <path d="M287.227,250.81c0-11.807-9.573-21.388-21.396-21.388c-11.807,0-21.38,9.582-21.38,21.388c0,11.831,9.574,21.428,21.38,21.428C277.654,272.238,287.227,262.642,287.227,250.81z"/> </g> </svg> );
+const LightbulbIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg viewBox="0 0 24 24" fill="none" {...props}> <path d="M12 7C9.23858 7 7 9.23858 7 12C7 13.3613 7.54402 14.5955 8.42651 15.4972C8.77025 15.8484 9.05281 16.2663 9.14923 16.7482L9.67833 19.3924C9.86537 20.3272 10.6862 21 11.6395 21H12.3605C13.3138 21 14.1346 20.3272 14.3217 19.3924L14.8508 16.7482C14.9472 16.2663 15.2297 15.8484 15.5735 15.4972C16.456 14.5955 17 13.3613 17 12C17 9.23858 14.7614 7 12 7Z" stroke="currentColor" strokeWidth="2"/> <path d="M12 4V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M18 6L19 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M20 12H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M4 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M5 5L6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M10 17H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> </svg> );
+// NEW: MicIcon
+const MicIcon = (props: React.SVGProps<SVGSVGElement>) => ( <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}> <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path> <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path> <line x1="12" y1="19" x2="12" y2="23"></line> </svg> );
+
+
+const toolsList = [ { id: 'createImage', name: 'Create an image', shortName: 'Image', icon: PaintBrushIcon }, { id: 'searchWeb', name: 'Search the web', shortName: 'Search', icon: GlobeIcon }, { id: 'writeCode', name: 'Write or code', shortName: 'Write', icon: PencilIcon }, { id: 'deepResearch', name: 'Run deep research', shortName: 'Deep Search', icon: TelescopeIcon, extra: '5 left' }, { id: 'thinkLonger', name: 'Think for longer', shortName: 'Think', icon: LightbulbIcon }, ];
+
+// --- The Final, Self-Contained PromptBox2 Component ---
+export const PromptBox2 = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
+  ({ className, ...props }, ref) => {
+    const internalTextareaRef = React.useRef<HTMLTextAreaElement>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [value, setValue] = React.useState("");
+    const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+    const [selectedTool, setSelectedTool] = React.useState<string | null>(null);
+    const [selectedPrivacy, setSelectedPrivacy] = React.useState<string>("Public");
+    const [selectedPosition, setSelectedPosition] = React.useState<string>("Text Position");
+    const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+    const [isImageDialogOpen, setIsImageDialogOpen] = React.useState(false);
+    React.useImperativeHandle(ref, () => internalTextareaRef.current!, []);
+    React.useLayoutEffect(() => { const textarea = internalTextareaRef.current; if (textarea) { textarea.style.height = "auto"; const newHeight = Math.min(textarea.scrollHeight, 200); textarea.style.height = `${newHeight}px`; } }, [value]);
+    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { setValue(e.target.value); if (props.onChange) props.onChange(e); };
+    const handlePlusClick = () => { fileInputRef.current?.click(); };
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (file && file.type.startsWith("image/")) { const reader = new FileReader(); reader.onloadend = () => { setImagePreview(reader.result as string); }; reader.readAsDataURL(file); } event.target.value = ""; };
+    const handleRemoveImage = (e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); setImagePreview(null); if(fileInputRef.current) { fileInputRef.current.value = ""; } };
+    const hasValue = value.trim().length > 0 || imagePreview;
+    const activeTool = selectedTool ? toolsList.find(t => t.id === selectedTool) : null;
+    const ActiveToolIcon = activeTool?.icon;
+
+    return (
+      <div className={cn("flex flex-col rounded-[28px] p-2 shadow-sm transition-colors bg-white border dark:bg-[#303030] dark:border-transparent cursor-text", className)}>
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*"/>
+        
+        )}
+            
+            <textarea ref={internalTextareaRef} rows={1} value={value} onChange={handleInputChange} placeholder="Message..." className="custom-scrollbar w-full resize-none border-0 bg-transparent p-3 text-foreground dark:text-white placeholder:text-muted-foreground dark:placeholder:text-gray-300 focus:ring-0 focus-visible:outline-none min-h-12" {...props} />
+            <div className="mt-0.5 p-1 pt-0">
+              <TooltipProvider delayDuration={100}>
+              <div className="flex items-center gap-2">
+                <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 rounded-full px-2 text-sm text-foreground dark:text-white">
+                  <GlobeIcon className="h-4 w-4" />
+                  <Switch
+                    checked={selectedPrivacy === "Private"}
+                    onCheckedChange={(checked) => setSelectedPrivacy(checked ? "Private" : "Public")}
+                  />
+                  <span>{selectedPrivacy}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" showArrow={true}>
+                  <p>Privacy Setting</p>
+                </TooltipContent>
+                </Tooltip>
+
+                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                  <PopoverTrigger asChild></PopoverTrigger>
+                    <button type="button" className="flex h-8 items-center gap-2 rounded-full p-2 text-sm text-foreground dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151] focus-visible:outline-none focus-visible:ring-ring">
+                    {selectedPosition === "Top" && <ArrowUpIcon className="h-4 w-4" />}
+                    {selectedPosition === "Center" && <AlignCenterIcon className="h-4 w-4" />}
+                    {selectedPosition === "Bottom" && <ArrowDownIcon className="h-4 w-4" />}
+                    {selectedPosition === "No Text" && <BanIcon className="h-4 w-4" />}
+                    {selectedPosition}
+                    </button>
+                  </PopoverTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" showArrow={true}>
+                  <p>Text Position</p>
+                  </TooltipContent>
+                </Tooltip>
+                <PopoverContent side="top" align="start">
+                  <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => {
+                    setSelectedPosition("Top");
+                    setIsPopoverOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md p-2 text-left text-sm hover:bg-accent dark:hover:bg-[#515151]"
+                  >
+                    <ArrowUpIcon className="h-4 w-4" />
+                    <span>Top</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                    setSelectedPosition("Center");
+                    setIsPopoverOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md p-2 text-left text-sm hover:bg-accent dark:hover:bg-[#515151]"
+                  >
+                    <AlignCenterIcon className="h-4 w-4" />
+                    <span>Center</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                    setSelectedPosition("Bottom");
+                    setIsPopoverOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md p-2 text-left text-sm hover:bg-accent dark:hover:bg-[#515151]"
+                  >
+                    <ArrowDownIcon className="h-4 w-4" />
+                    <span>Bottom</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                    setSelectedPosition("No Text");
+                    setIsPopoverOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md p-2 text-left text-sm hover:bg-accent dark:hover:bg-[#515151]"
+                  >
+                    <BanIcon className="h-4 w-4" />
+                    <span>No Text</span>
+                  </button>
+                  </div>
+                </PopoverContent>
+                </Popover></button>
+                
+
+
+              {/* MODIFIED: Right-aligned buttons container */}
+              <div className="ml-auto flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-foreground dark:text-white transition-colors hover:bg-accent dark:hover:bg-[#515151] focus-visible:outline-none">
+                      <MicIcon className="h-5 w-5" />
+                      <span className="sr-only">Record voice</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" showArrow={true}><p>Record voice</p></TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="submit" disabled={!hasValue} className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 disabled:bg-black/40 dark:disabled:bg-[#515151]">
+                      <SendIcon className="h-6 w-6 text-bold" />
+                      <span className="sr-only">Send message</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" showArrow={true}><p>Send</p></TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </TooltipProvider>
+        </div>
+      </div>
+    );
+  }
+);
+PromptBox2.displayName = "PromptBox2";
