@@ -11,7 +11,7 @@ interface PaymentContextType {
   autoRenewEnabled: boolean;
   nextBillingDate: string | null;
   subscriptionStatus: string;
-  createSubscription: (productId: string, planType: string) => Promise<void>;
+  createSubscription: (planType: string) => Promise<void>;
   refreshPaymentData: () => Promise<void>;
   cancelSubscription: () => Promise<void>;
   enableAutoRenew: () => Promise<void>;
@@ -95,7 +95,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const createSubscription = async (productId: string, planType: string) => {
+  const createSubscription = async (planType: string) => {
     try {
       // Get current session
       const { data: { session } } = await supabase.auth.getSession();
@@ -115,7 +115,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ productId, planType }),
+        body: JSON.stringify({ planType }),
       });
 
       if (response.ok) {

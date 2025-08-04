@@ -13,21 +13,8 @@ import { storeUserDataForRedirect } from '@/app/lib/authUtils';
 
 // Helper function to get the correct product ID based on environment
 const getProductId = (baseName: string) => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const envPrefix = isDevelopment ? '' : 'LIVE_';
-  const envVarName = `NEXT_PUBLIC_DODO_${envPrefix}${baseName}_PRODUCT_ID`;
-  const productId = process.env[envVarName] || `${baseName.toLowerCase()}-${isDevelopment ? 'dev' : 'prod'}`;
-  
-  // Debug logging
-  console.log(`getProductId(${baseName}):`, {
-    isDevelopment,
-    envPrefix,
-    envVarName,
-    productId,
-    hasEnvVar: !!process.env[envVarName]
-  });
-  
-  return productId;
+  // For now, return a placeholder - the actual product ID will be resolved server-side
+  return `${baseName.toLowerCase()}-placeholder`;
 };
 
 interface Plan {
@@ -211,7 +198,7 @@ export default function PricingPage() {
         planName: plan.name
       });
 
-      await createSubscription(plan.productId, plan.name.toLowerCase());
+      await createSubscription(plan.name.toLowerCase());
       
       // Step 2: Redirect to payment
       setPaymentStatus({

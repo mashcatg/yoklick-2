@@ -49,11 +49,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 401 });
     }
 
-    const { productId, planType } = await req.json();
+    const { planType } = await req.json();
 
-    if (!productId || !planType) {
-      return NextResponse.json({ error: "Product ID and plan type are required" }, { status: 400 });
+    if (!planType) {
+      return NextResponse.json({ error: "Plan type is required" }, { status: 400 });
     }
+
+    // Server-side product ID resolution
+    const getProductId = (baseName: string) => {
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      const envPrefix = isDevelopment ? '' : 'LIVE_';
+      const envVarName = `DODO_${envPrefix}${baseName}_PRODUCT_ID`;
+      return process.env[envVarName] || `${baseName.toLowerCase()}-${isDevelopment ? 'dev' : 'prod'}`;
+    };
+
+    // Map plan type to product ID
+    let productId: string;
+    switch (planType.toLowerCase()) {
+      case 'starter':
+        productId = getProductId('STARTER_MONTHLY');
+        break;
+      case 'creator':
+        productId = getProductId('CREATOR_MONTHLY');
+        break;
+      case 'pro':
+        productId = getProductId('PRO_MONTHLY');
+        break;
+      default:
+        return NextResponse.json({ error: "Invalid plan type" }, { status: 400 });
+    }
+
+    // Debug logging
+    console.log('Server-side product ID resolution:', {
+      planType,
+      productId,
+      NODE_ENV: process.env.NODE_ENV,
+      hasApiKey: !!DODO_API_KEY
+    });
 
     // Initialize Dodo Payments client
     const isDevelopment = process.env.NODE_ENV === 'development';
