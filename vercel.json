@@ -1,10 +1,4 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/daily-maintenance",
-      "schedule": "0 0 * * *"
-    }
-  ],
   "functions": {
     "src/app/api/cron/daily-maintenance/route.ts": {
       "maxDuration": 120
