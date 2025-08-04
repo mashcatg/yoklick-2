@@ -241,7 +241,8 @@ export async function POST(req: NextRequest) {
           console.log('Subscription created successfully with test mode:', subscription.subscription_id);
           
           // Generate checkout URL with test mode
-          const checkoutBaseUrl = 'https://test.checkout.dodopayments.com';
+          const checkoutBaseUrl = `${isDevelopment ? 'https://test.checkout.dodopayments.com' : 'https://checkout.dodopayments.com'}`;
+
           const redirectUrl = `https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=${subscription.subscription_id}`;
           const dodoCheckoutUrl = `${checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent(redirectUrl)}`;
           
