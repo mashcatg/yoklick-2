@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
 
     // Generate Dodo Payments checkout URL
     const checkoutBaseUrl = isDevelopment ? 'https://test.checkout.dodopayments.com' : 'https://checkout.dodopayments.com';
-    const redirectUrl = `https://yoklick-2-zkkv.vercel.app/checkout?subscription_id=${subscription.subscription_id}`;
+    const redirectUrl = `https:///www.yoklick.com/checkout?subscription_id=${subscription.subscription_id}`;
     const dodoCheckoutUrl = `${checkoutBaseUrl}/buy/${productId}?quantity=1&redirect_url=${encodeURIComponent(redirectUrl)}`;
     
     console.log('Checkout URL generated:', {
