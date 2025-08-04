@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import DodoPayments from "dodopayments";
 import { rateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
 
-const DODO_API_KEY = process.env.DODO_API_KEY;
+const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY;
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting
@@ -49,6 +49,13 @@ export async function POST(req: NextRequest) {
     // Initialize Dodo Payments client
     const isDevelopment = process.env.NODE_ENV === 'development';
     const environment = isDevelopment ? 'test_mode' : 'live_mode';
+    
+    console.log('Environment detection:', {
+      NODE_ENV: process.env.NODE_ENV,
+      isDevelopment,
+      environment,
+      hasApiKey: !!DODO_API_KEY
+    });
     
     const client = new DodoPayments({
       bearerToken: DODO_API_KEY,
@@ -144,6 +151,13 @@ export async function POST(req: NextRequest) {
       }, { headers });
 
     } catch (error: any) {
+      console.error('Dodo Payments API error:', {
+        error: error.message,
+        status: error.status,
+        name: error.name,
+        stack: error.stack
+      });
+      
       if (error instanceof DodoPayments.APIError) {
         return NextResponse.json({ 
           error: "Dodo Payments API error",
