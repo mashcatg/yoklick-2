@@ -12,6 +12,7 @@
     "build:production": "NODE_ENV=production next build",
     "start:production": "NODE_ENV=production next start",
     "build:no-check": "next build --no-lint",
+    "build:vercel": "next build",
     "deploy": "npm run build && vercel --prod",
     "deploy:fast": "npm run build:no-check && vercel --prod"
   },

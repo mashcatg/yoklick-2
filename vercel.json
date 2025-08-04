@@ -10,7 +10,7 @@
       "maxDuration": 120
     }
   },
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build:vercel",
   "installCommand": "npm install",
   "framework": "nextjs"
 } 

@@ -135,7 +135,7 @@ const nextConfig: NextConfig = {
 
   // Experimental features for better performance
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false, // Disabled due to critters module issue
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
 
