@@ -467,7 +467,8 @@ export default function HomePage() {
               ) : myThumbsLoading || myThumbs.some(t => t === null) ? (
                 <HomepageSkeleton />
               ) : myThumbs.length === 0 ? (
-                <NoThumbnailsFound />
+                // <NoThumbnailsFound />
+                <></>
               ) : (
                 <ThumbnailsGrid
                   thumbnails={myThumbs}
