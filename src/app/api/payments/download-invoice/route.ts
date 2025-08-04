@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       `${baseUrl}/invoices/payments/${paymentId}`,
       {
         headers: {
-          "Authorization": `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
+          "Authorization": `Bearer ${process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY}`,
         },
       }
     );

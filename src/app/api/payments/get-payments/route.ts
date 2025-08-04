@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import DodoPayments from "dodopayments";
 
-const DODO_API_KEY = process.env.DODO_API_KEY;
+const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY;
 
 export async function GET(req: NextRequest) {
   try {
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       // First get subscription details to get customer_id
       const subscriptionResponse = await fetch(`https://${isDevelopment ? 'test' : 'live'}.dodopayments.com/subscriptions/${subscriptionId}`, {
         headers: {
-          'Authorization': `Bearer ${DODO_API_KEY}`,
+          'Authorization': `Bearer ${process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY}`,
           'Content-Type': 'application/json'
         }
       });
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
       if (customerId) {
         const paymentsResponse = await fetch(`https://${isDevelopment ? 'test' : 'live'}.dodopayments.com/payments?customer_id=${customerId}`, {
           headers: {
-            'Authorization': `Bearer ${DODO_API_KEY}`,
+            'Authorization': `Bearer ${process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY}`,
             'Content-Type': 'application/json'
           }
         });
@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
         // Fallback to subscription_id if customer_id not found
         const paymentsResponse = await fetch(`https://${isDevelopment ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscriptionId}`, {
           headers: {
-            'Authorization': `Bearer ${DODO_API_KEY}`,
+            'Authorization': `Bearer ${process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY}`,
             'Content-Type': 'application/json'
           }
         });

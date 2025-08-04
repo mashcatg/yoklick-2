@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import DodoPayments from "dodopayments";
 
-const DODO_API_KEY = process.env.DODO_API_KEY;
+const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY;
 
 export async function POST(req: NextRequest) {
   try {

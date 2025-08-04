@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       `https://${process.env.NODE_ENV === 'development' ? 'test' : 'live'}.dodopayments.com/payments/${paymentId}`,
       {
         headers: {
-          "Authorization": `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
+          "Authorization": `Bearer ${process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY}`,
         },
       }
     );

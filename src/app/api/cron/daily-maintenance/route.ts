@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import DodoPayments from "dodopayments";
 import { rateLimit } from "@/lib/rateLimit";
 
-const DODO_API_KEY = process.env.DODO_API_KEY;
+const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY;
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting

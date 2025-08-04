@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import DodoPayments from "dodopayments";
 
-const DODO_API_KEY = process.env.DODO_API_KEY;
+const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY;
 
 export async function GET(req: NextRequest) {
   try {

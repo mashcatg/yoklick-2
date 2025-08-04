@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import DodoPayments from "dodopayments";
 
-const DODO_API_KEY = process.env.DODO_API_KEY;
+const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY;
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
         await handleSubscriptionState(dodoSubscription, subscription, supabase, client);
 
         // Check for failed payments and retry logic
-        if (dodoSubscription.status === "past_due") {
+        if (dodoSubscription.status === "past_due" as any) {
           failedPaymentCount++;
           await handleFailedPayment(dodoSubscription, supabase, client);
         }
@@ -172,7 +172,7 @@ async function handleFailedPayment(subscription: any, supabase: any, client: any
     // Get payment history for this subscription
     const paymentsResponse = await fetch(`https://${process.env.NODE_ENV === 'development' ? 'test' : 'live'}.dodopayments.com/payments?subscription_id=${subscription.subscription_id}`, {
       headers: {
-        'Authorization': `Bearer ${process.env.DODO_API_KEY}`,
+        'Authorization': `Bearer ${process.env.DODO_PAYMENTS_API_KEY || process.env.DODO_API_KEY}`,
         'Content-Type': 'application/json'
       }
     });
