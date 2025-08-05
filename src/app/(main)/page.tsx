@@ -407,6 +407,9 @@ export default function HomePage() {
     <div className="max-w-screen-2xl px-2 mx-auto w-full flex flex-col gap-2 md:gap-8 py-8">
       {/* Headline - Always visible immediately */}
       <h1 className="animate-element animate-delay-100 text-2xl md:text-4xl font-bold text-center mb-1 tracking-tight leading-tight block md:hidden">
+      <a href="https://magicbox.tools" target="_blank">
+  <img src="https://magicbox.tools/badge.svg" alt="Featured on MagicBox.tools" width="200" height="54" />
+</a>
         <div>Turn Your Title </div>
       
         <span>Into Stunning <span className="text-primary">Thumbnails</span></span>
