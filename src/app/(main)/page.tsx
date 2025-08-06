@@ -141,8 +141,8 @@ export default function HomePage() {
         // Get URL parameters without using useSearchParams
         const url = window.location.href;
         const urlObj = new URL(url);
-        const row = urlObj.searchParams.get('row');
-        const type = urlObj.searchParams.get('type');
+        const row = urlObj.searchParams.get('r');
+        const type = urlObj.searchParams.get('t');
         
         // If either parameter exists, make the request
         if (row || type) {
