@@ -134,6 +134,51 @@ export default function HomePage() {
     // Removed debug logging for production
   }, [isGenerating]);
 
+  // Track URL parameters and call automation server
+  useEffect(() => {
+    const trackUrlParameters = async () => {
+      try {
+        // Get URL parameters without using useSearchParams
+        const url = window.location.href;
+        const urlObj = new URL(url);
+        const row = urlObj.searchParams.get('row');
+        const type = urlObj.searchParams.get('type');
+        
+        // If either parameter exists, make the request
+        if (row || type) {
+          const automationServerUrl = process.env.NEXT_PUBLIC_AUTOMATION_SERVER_TRACK_NEW_USER;
+          
+          if (automationServerUrl) {
+            const automationUrl = `${automationServerUrl}?row=${row || ''}&type=${type || ''}`;
+            
+            
+            const response = await fetch(automationUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (response.ok) {
+              console.log('Automation server request successful');
+            } else {
+              console.log('Automation server request failed:', response.status);
+            }
+          } else {
+            console.log('Automation server URL not configured');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error tracking URL parameters:', error);
+      }
+    };
+
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      trackUrlParameters();
+    }
+  }, []); // Run only once on mount
+
   const fetchMyThumbs = async (userId: string) => {
     setMyThumbsLoading(true);
     const { data } = await supabase
