@@ -63,8 +63,8 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://pictures-storage.storage.eu-north1.nebius.cloud https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://platform-lookaside.fbsbx.com https://graph.facebook.com; connect-src 'self' https://*.supabase.co https://api.deepseek.com https://api.studio.nebius.com https://test.dodopayments.com https://*.ngrok-free.app https://generativelanguage.googleapis.com https://www.google-analytics.com wss://*.supabase.co; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self';",
-          },
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://pictures-storage.storage.eu-north1.nebius.cloud https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://platform-lookaside.fbsbx.com https://graph.facebook.com; connect-src 'self' https://*.supabase.co https://api.deepseek.com https://api.studio.nebius.com https://test.dodopayments.com https://*.ngrok-free.app https://generativelanguage.googleapis.com https://www.google-analytics.com wss://*.supabase.co https://acd77dc1c2c0.ngrok-free.app; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self';",
+          },          
         ],
       },
       // Sitemap headers

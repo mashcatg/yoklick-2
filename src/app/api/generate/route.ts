@@ -253,9 +253,7 @@ export async function POST(req: Request) {
         ]);
 
         const image_urls = results.filter(Boolean);
-        // for debug I've closed my dynamic part and using static one
-        // const image_urls = ['https://pictures-storage.storage.eu-north1.nebius.cloud/text2img-eb2c8acb-30ac-489a-bcc1-72bb1d78dc0b_00001_.webp', 'https://pictures-storage.storage.eu-north1.nebius.cloud/text2img-eb2c8acb-30ac-489a-bcc1-72bb1d78dc0b_00001_.webp', 'https://pictures-storage.storage.eu-north1.nebius.cloud/text2img-eb2c8acb-30ac-489a-bcc1-72bb1d78dc0b_00001_.webp','https://pictures-storage.storage.eu-north1.nebius.cloud/text2img-eb2c8acb-30ac-489a-bcc1-72bb1d78dc0b_00001_.webp'];
-
+       
         if (image_urls.length === 0) {
             throw new Error("Failed to generate any thumbnails");
         }
