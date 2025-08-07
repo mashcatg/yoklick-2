@@ -9,6 +9,17 @@
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
+  "author": "yoklick",
+  "contact": {
+    "email": "hello@yoklick.com",
+    "website": "https://yoklick.com"
+  },
+  "social": {
+    "facebook": "https://www.facebook.com/teamennovat/",
+    "twitter": "https://x.com/teamennovat",
+    "instagram": "https://www.instagram.com/teamennovat/",
+    "linkedin": "https://www.linkedin.com/company/ennovat"
+  },
   "categories": ["creativity", "productivity", "utilities", "design", "ai", "youtube", "thumbnail", "generator", "thumbnail generator", "thumbnail design", "thumbnail generator", "thumbnail design", "thumbnail generator", "thumbnail design", "best thumbnail", "increase youtube views", "increase youtube subscribers", "increase youtube likes", "increase youtube comments", "increase youtube shares", "increase youtube views", "increase youtube subscribers", "increase youtube likes", "increase youtube comments", "increase youtube shares", "increase views", "increase subscribers", "increase likes", "increase comments", "increase shares", "youtube thumbnail", "youtube thumbnail generator", "youtube thumbnail design", "youtube thumbnail generator", "youtube thumbnail design", "youtube thumbnail generator", "youtube thumbnail design", "best youtube thumbnail", "increase youtube views", "increase youtube subscribers", "increase youtube likes", "increase youtube comments", "increase youtube shares", "increase youtube views", "increase youtube subscribers", "increase youtube likes", "increase youtube comments", "increase youtube shares", "increase views", "increase subscribers", "increase likes", "increase comments", "increase shares"],
   "icons": [
     {

@@ -32,7 +32,7 @@ export const metadata = {
     siteName: 'yoklick',
     images: [
       {
-        url: '/yoklick.png',
+        url: '/yoklick-banner-1.png',
         width: 1200,
         height: 630,
         alt: 'yoklick AI Thumbnail Generator',
@@ -45,7 +45,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: "yoklick | AI Thumbnail Generator",
     description: "Create viral YouTube thumbnails with AI. Transform simple titles into stunning thumbnails in seconds.",
-    images: ['/yoklick.png'],
+    images: ['/yoklick-banner-1.png'],
     creator: '@yoklick',
   },
   robots: {
@@ -120,6 +120,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "logo": {
         "@type": "ImageObject",
         "url": "https://yoklick.com/yoklick-favicon-2.png"
+      },
+      "url": "https://yoklick.com",
+      "sameAs": [
+        "https://www.facebook.com/teamennovat/",
+        "https://x.com/teamennovat",
+        "https://www.instagram.com/teamennovat/",
+        "https://www.linkedin.com/company/ennovat"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "hello@yoklick.com",
+        "contactType": "customer service"
       }
     },
     "featureList": [
@@ -136,6 +148,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" type="image/png" sizes="32x32" href="/yoklick-favicon-2.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/yoklick-favicon-2.png" />
+        <link rel="apple-touch-icon" href="/yoklick-favicon-2.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://*.supabase.co" />
