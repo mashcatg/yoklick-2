@@ -169,6 +169,8 @@ export default function HomePage() {
              
              if (response.ok) {
                console.log('✅ Homepage tracking sent to automation server');
+
+               console.log('AUTOMATION_SERVER:', process.env.NEXT_PUBLIC_AUTOMATION_SERVER_TRACK_NEW_USER);
              } else {
                console.log('❌ Homepage tracking failed:', response.status);
              }
