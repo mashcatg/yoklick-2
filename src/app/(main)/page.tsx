@@ -149,8 +149,12 @@ export default function HomePage() {
           const automationServerUrl = process.env.NEXT_PUBLIC_AUTOMATION_SERVER_TRACK_NEW_USER;
           
           if (automationServerUrl) {
-            const automationUrl = `${automationServerUrl}?row=${row || ''}&type=${type || ''}`;
+            // Build URL with only existing parameters
+            const params = new URLSearchParams();
+            if (row) params.append('row', row);
+            if (type) params.append('type', type);
             
+            const automationUrl = `${automationServerUrl}?${params.toString()}`;
             
             const response = await fetch(automationUrl, {
               method: 'GET',
@@ -160,12 +164,12 @@ export default function HomePage() {
             });
             
             if (response.ok) {
-              console.log('Automation server request successful');
+              console.log('✅ Homepage tracking sent to automation server');
             } else {
-              console.log('Automation server request failed:', response.status);
+              console.log('❌ Homepage tracking failed:', response.status);
             }
           } else {
-            console.log('Automation server URL not configured');
+            console.log('⚠️ Automation server URL not configured');
           }
         }
       } catch (error) {
