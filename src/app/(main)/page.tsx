@@ -138,40 +138,44 @@ export default function HomePage() {
   useEffect(() => {
     const trackUrlParameters = async () => {
       try {
-        // Get URL parameters without using useSearchParams
-        const url = window.location.href;
-        const urlObj = new URL(url);
-        const row = urlObj.searchParams.get('r');
-        const type = urlObj.searchParams.get('t');
-        
-        // If either parameter exists, make the request
-        if (row || type) {
-          const automationServerUrl = process.env.NEXT_PUBLIC_AUTOMATION_SERVER_TRACK_NEW_USER;
-          
-          if (automationServerUrl) {
-            // Pass through original parameters to automation server
-            const params = new URLSearchParams();
-            if (row) params.append('row', row);
-            if (type) params.append('type', type);
-            
-            const automationUrl = `${automationServerUrl}?${params.toString()}`;
-            
-            const response = await fetch(automationUrl, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            });
-            
-            if (response.ok) {
-              console.log('Homepage tracking sent to automation server');
-            } else {
-              console.log('Homepage tracking failed:', response.status);
-            }
-          } else {
-            console.log('Automation server URL not configured');
-          }
-        }
+                 // Get URL parameters without using useSearchParams
+         const url = window.location.href;
+         const urlObj = new URL(url);
+         const row = urlObj.searchParams.get('r');
+         const type = urlObj.searchParams.get('t');
+         
+         console.log('🔍 URL Parameters detected:', { row, type, fullUrl: url });
+         
+         // If either parameter exists, make the request
+         if (row || type) {
+           const automationServerUrl = process.env.NEXT_PUBLIC_AUTOMATION_SERVER_TRACK_NEW_USER;
+           
+           if (automationServerUrl) {
+             // Pass through original parameters to automation server
+             const params = new URLSearchParams();
+             if (row) params.append('row', row);
+             if (type) params.append('type', type);
+             
+             const automationUrl = `${automationServerUrl}?${params.toString()}`;
+             
+             console.log('📤 Sending to automation server:', automationUrl);
+             
+             const response = await fetch(automationUrl, {
+               method: 'GET',
+               headers: {
+                 'Content-Type': 'application/json',
+               },
+             });
+             
+             if (response.ok) {
+               console.log('✅ Homepage tracking sent to automation server');
+             } else {
+               console.log('❌ Homepage tracking failed:', response.status);
+             }
+           } else {
+             console.log('⚠️ Automation server URL not configured');
+           }
+         }
       } catch (error) {
         console.error('Error tracking URL parameters:', error);
       }
