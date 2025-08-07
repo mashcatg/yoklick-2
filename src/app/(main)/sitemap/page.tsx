@@ -41,6 +41,7 @@ export default function SitemapPage() {
     {
       title: "Legal",
       links: [
+        { href: "/about", label: "About Us", description: "Learn about Yoklick" },
         { href: "/privacy", label: "Privacy Policy", description: "How we handle your data" },
         { href: "/terms", label: "Terms & Conditions", description: "Terms of service" },
       ]
