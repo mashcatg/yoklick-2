@@ -152,7 +152,7 @@ export default function HomePage() {
             // Transform parameters for automation server
             const params = new URLSearchParams();
             if (row) params.append('row', row);
-            if (type) params.append('type', type); 
+            if (type) params.append('type', 'cm'); // Always send 'cm' as type
             
             const automationUrl = `${automationServerUrl}?${params.toString()}`;
             
