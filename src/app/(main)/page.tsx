@@ -149,10 +149,10 @@ export default function HomePage() {
           const automationServerUrl = process.env.NEXT_PUBLIC_AUTOMATION_SERVER_TRACK_NEW_USER;
           
           if (automationServerUrl) {
-            // Build URL with only existing parameters
+            // Transform parameters for automation server
             const params = new URLSearchParams();
             if (row) params.append('row', row);
-            if (type) params.append('type', type);
+            if (type) params.append('type', type); 
             
             const automationUrl = `${automationServerUrl}?${params.toString()}`;
             
