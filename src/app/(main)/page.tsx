@@ -164,16 +164,16 @@ export default function HomePage() {
             });
             
             if (response.ok) {
-              console.log('✅ Homepage tracking sent to automation server');
+              console.log('Homepage tracking sent to automation server');
             } else {
-              console.log('❌ Homepage tracking failed:', response.status);
+              console.log('Homepage tracking failed:', response.status);
             }
           } else {
-            console.log('⚠️ Automation server URL not configured');
+            console.log('Automation server URL not configured');
           }
         }
       } catch (error) {
-        console.error('❌ Error tracking URL parameters:', error);
+        console.error('Error tracking URL parameters:', error);
       }
     };
 
