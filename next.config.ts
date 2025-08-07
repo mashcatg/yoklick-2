@@ -24,7 +24,8 @@ const nextConfig: NextConfig = {
       'avatars.githubusercontent.com',
       'platform-lookaside.fbsbx.com',
       'graph.facebook.com',
-      'yoklick.com'
+      'yoklick.com',
+      'acd77dc1c2c0.ngrok-free.app'
     ],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
